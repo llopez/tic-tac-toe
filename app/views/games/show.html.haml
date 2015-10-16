@@ -1,0 +1,77 @@
+%table
+  %tr
+    %td(style="border:1px solid")
+      %input(type='radio' name="11" value="O" id='11O')
+      %input(type='radio' name="11" value="X" id='11X')
+    %td(style="border:1px solid")
+      %input(type='radio' name="12" value="O" id='12O')
+      %input(type='radio' name="12" value="X" id='12X')
+    %td(style="border:1px solid")
+      %input(type='radio' name="13" value="O" id='13O')
+      %input(type='radio' name="13" value="X" id='13X')
+  %tr
+    %td(style="border:1px solid")
+      %input(type='radio' name="21" value="O" id='21O')
+      %input(type='radio' name="21" value="X" id='21X')
+    %td(style="border:1px solid")
+      %input(type='radio' name="22" value="O" id='22O')
+      %input(type='radio' name="22" value="X" id='22X')
+    %td(style="border:1px solid")
+      %input(type='radio' name="23" value="O" id='23O')
+      %input(type='radio' name="23" value="X" id='23X')
+  %tr
+    %td(style="border:1px solid")
+      %input(type='radio' name="31" value="O" id='31O')
+      %input(type='radio' name="31" value="X" id='31X')
+    %td(style="border:1px solid")
+      %input(type='radio' name="32" value="O" id='32O')
+      %input(type='radio' name="32" value="X" id='32X')
+    %td(style="border:1px solid")
+      %input(type='radio' name="33" value="O" id='33O')
+      %input(type='radio' name="33" value="X" id='33X')
+
+:javascript
+  $(function(){
+    $.get('/games/'+'#{@game.token1}'+'.json', function(data){
+      var board = data.board;
+      var cells = ['11', '12', '13', '21', '22', '23', '31', '32', '33'] 
+
+      for(var i = 0; i < cells.length; i++){
+        var cell = cells[i];
+        $('input[id='+cell+board[cell]+']').attr('checked', 'checked');
+        if(board[cell]){
+          $('input[name='+cell+']').attr('disabled', 'disabled');
+        }
+      }
+    });
+
+    $('input[type=radio]').on('change', function(){
+      var data = {};
+      data[this.name] = this.value;
+      $.ajax({
+        url: '/games/'+#{@game.id}+'.json',
+        type: 'put',
+        data: {game: {board:  data}}
+      }) 
+      $('input[name='+this.name+']').attr('disabled', 'disabled');
+    })
+
+    Pusher.log = function(message) {
+      if (window.console && window.console.log) {
+        window.console.log(message);
+      }
+    };
+
+    var pusher = new Pusher('68c5c3481ddbd8d2912d', {
+      encrypted: true
+    });
+    var channel = pusher.subscribe('board');
+    channel.bind('change', function(data) {
+
+      var board = data.message.board
+      console.log(board)
+
+
+    });
+  });
+
