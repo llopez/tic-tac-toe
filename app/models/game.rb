@@ -16,6 +16,10 @@ class Game < ActiveRecord::Base
       '32' => nil,
       '33' => nil
     }
+    self.token1 = SecureRandom.hex(4)
+    self.token2 = SecureRandom.hex(4)
+    self.turn = self.token1
+    self.status = 'playing'
   end
 
   def board=(hash)

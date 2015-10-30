@@ -4,6 +4,8 @@ class CreateGames < ActiveRecord::Migration
       t.text :board
       t.string :token1
       t.string :token2
+      t.string :turn
+      t.string :status
 
       t.timestamps null: false
     end

@@ -17,6 +17,8 @@ ActiveRecord::Schema.define(version: 20151015193007) do
     t.text     "board"
     t.string   "token1"
     t.string   "token2"
+    t.string   "turn"
+    t.string   "status"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
