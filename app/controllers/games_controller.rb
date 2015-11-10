@@ -17,9 +17,9 @@ class GamesController < ApplicationController
     respond_to do |format|
       if move.valid?
         move.perform
-        format.json{ render nothing: true, status: :ok }
+        format.json{ render json: @game, status: :ok }
       else
-        format.json{ render nothing: true, status: :bad_request }
+        format.json{ render json: @game, status: :bad_request }
       end
     end
   end
@@ -32,7 +32,7 @@ private
     @token = params[:token]
   end
   def game_params
-    params.require(:game).permit(board: ['11', '12', '13', '21', '22', '23', '31', '32', '33'])
+    params.require(:game).permit(:cell)
   end
 end
 

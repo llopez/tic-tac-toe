@@ -2,19 +2,19 @@ class Movement
   def initialize(game, token, params)
     @game = game
     @token = token
-    @move = params[:board]
+    @move = params[:cell]
     @board = game.board
   end
 
   def perform
     token = [@game.token1, @game.token2].find{|x| x != @token}
     
-    @game.board = @move
+    @game.board = {@move => @token}
     @game.turn = token
     @game.save
-    
+
     Pusher.trigger('board-' + token, 'change', {
-      message: {board: @move}
+      message: {board: {@move => @token}}
     })
   end
 
@@ -31,6 +31,6 @@ class Movement
   end
 
   def cell_blank?
-    @board[@move.keys.first].nil?
+    @board[@move].nil?
   end
 end
