@@ -22,6 +22,24 @@ class Game < ActiveRecord::Base
     self.status = 'playing'
   end
 
+  def reset!
+    self.board = {
+      '11' => nil,
+      '12' => nil,
+      '13' => nil,
+    
+      '21' => nil,
+      '22' => nil,
+      '23' => nil,
+    
+      '31' => nil,
+      '32' => nil,
+      '33' => nil
+    }
+    self.turn = self.token1
+    save
+  end
+
   def board=(hash)
     super(board.merge(hash))
   end
