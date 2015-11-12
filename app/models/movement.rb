@@ -8,13 +8,19 @@ class Movement
 
   def perform
     token = [@game.token1, @game.token2].find{|x| x != @token}
-    
-    @game.board = {@move => @token}
+   
+    @symbol = if @token == @game.token1
+      'X'
+    else
+      'O'
+    end
+
+    @game.board = {@move => @symbol}
     @game.turn = token
     @game.save
 
-    Pusher.trigger('board-' + token, 'change', {
-      message: {board: {@move => @token}}
+    Pusher.trigger('game', 'change', {
+      message: {board: {@move => @symbol}}
     })
   end
 

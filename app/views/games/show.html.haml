@@ -41,7 +41,6 @@
         type: 'put',
         data: {game: {cell: this.name}}
       }).done(function(data){
-        $('input[name='+this.name+']').replaceWith('#{@token}');
         alert('thanks...');
       }).fail(function(data){
         alert('it is not your turn...');
@@ -52,11 +51,10 @@
       encrypted: true
     });
 
-    var channel = pusher.subscribe('board-'+'#{@token}');
+    var channel = pusher.subscribe('game');
     channel.bind('change', function(data) {
 
       var board = data.message.board
-      //console.log(board)
 
       cell = Object.keys(board)[0];
       value = board[cell];
