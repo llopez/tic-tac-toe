@@ -59,11 +59,11 @@
         type: 'put',
         data: {game: {cell: this.name}}
       }).done(function(data){
+        $('input[name='+this.name+']').replaceWith('#{@token}');
         alert('thanks...');
       }).fail(function(data){
         alert('it is not your turn...');
       });
-      $('input[name='+this.name+']').replaceWith('#{@token}');
     })
 
     var pusher = new Pusher('68c5c3481ddbd8d2912d', {
