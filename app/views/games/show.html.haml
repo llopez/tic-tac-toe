@@ -1,36 +1,44 @@
-%table
-  %tr
-    %td(style="border:1px solid")
-      %input(type='button' name="11" id="11")
-    %td(style="border:1px solid")
-      %input(type='button' name="12" id="12")
-    %td(style="border:1px solid")
-      %input(type='button' name="13" id="13")
-  %tr
-    %td(style="border:1px solid")
-      %input(type='button' name="21" id="21")
-    %td(style="border:1px solid")
-      %input(type='button' name="22" id="22")
-    %td(style="border:1px solid")
-      %input(type='button' name="23" id="23")
-  %tr
-    %td(style="border:1px solid")
-      %input(type='button' name="31" id="31")
-    %td(style="border:1px solid")
-      %input(type='button' name="32" id="32")
-    %td(style="border:1px solid")
-      %input(type='button' name="33" id="33")
+.row
+  .col-md-4.col-md-offset-4
+    %table.table
+      %tr
+        %td.text-center
+          %input.btn.btn-default(type='button' name="11" id="11")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="12" id="12")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="13" id="13")
+      %tr
+        %td.text-center
+          %input.btn.btn-default(type='button' name="21" id="21")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="22" id="22")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="23" id="23")
+      %tr
+        %td.text-center
+          %input.btn.btn-default(type='button' name="31" id="31")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="32" id="32")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="33" id="33")
 
 :javascript
   $(function(){
     $.get('/games/'+'#{@token}'+'.json', function(data){
       var board = data.board;
       var cells = ['11', '12', '13', '21', '22', '23', '31', '32', '33'] 
-
+ 
       for(var i = 0; i < cells.length; i++){
         var cell = cells[i];
         if(board[cell]){
-          $('input[id='+cell+']').replaceWith(board[cell]);
+          if(board[cell] == 'X'){
+            icon = $("<i class='glyphicon glyphicon-king' style='font-size: xx-large'>")
+          }
+          else{
+            icon = $("<i class='glyphicon glyphicon-queen' style='font-size: xx-large'>")
+          }
+          $('input[id='+cell+']').replaceWith(icon);
         }
       }
     });
@@ -60,7 +68,14 @@
       value = board[cell];
       id = cell + value;
 
-      $('input[name='+cell+']').replaceWith(value);
+      if(value == 'X'){
+        icon = $("<i class='glyphicon glyphicon-king' style='font-size: xx-large'>")
+      }
+      else{
+        icon = $("<i class='glyphicon glyphicon-queen' style='font-size: xx-large'>")
+      }
+
+      $('input[name='+cell+']').replaceWith(icon);
     });
   });
 
