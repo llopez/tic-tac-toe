@@ -1,0 +1,86 @@
+.row
+  .col-md-4.col-md-offset-4
+    %table.table
+      %tr
+        %td.text-center
+          %input.btn.btn-default(type='button' name="11" id="11")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="12" id="12")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="13" id="13")
+      %tr
+        %td.text-center
+          %input.btn.btn-default(type='button' name="21" id="21")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="22" id="22")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="23" id="23")
+      %tr
+        %td.text-center
+          %input.btn.btn-default(type='button' name="31" id="31")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="32" id="32")
+        %td.text-center
+          %input.btn.btn-default(type='button' name="33" id="33")
+
+:javascript
+  $(function(){
+    function notify(type, msg){
+      var flash = $("<div class='alert alert-"+type+"'><button class='close' type='button' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button>"+ msg +"</div>");
+      $('.container').prepend(flash);
+    }
+
+    $.get('/games/'+'#{@token}'+'.json', function(data){
+      var board = data.board;
+      var cells = ['11', '12', '13', '21', '22', '23', '31', '32', '33'] 
+ 
+      for(var i = 0; i < cells.length; i++){
+        var cell = cells[i];
+        if(board[cell]){
+          if(board[cell] == 'X'){
+            icon = $("<i class='glyphicon glyphicon-king' style='font-size: xx-large'>")
+          }
+          else{
+            icon = $("<i class='glyphicon glyphicon-queen' style='font-size: xx-large'>")
+          }
+          $('input[id='+cell+']').replaceWith(icon);
+        }
+      }
+    });
+
+    $('input[type=button]').on('click', function(){
+      $.ajax({
+        url: '/games/'+'#{@token}'+'.json',
+        type: 'put',
+        data: {game: {cell: this.name}}
+      }).done(function(data){
+        notify('success', 'Ok');
+      }).fail(function(data){
+        notify('danger', 'Fail');
+      });
+    })
+
+    var pusher = new Pusher('68c5c3481ddbd8d2912d', {
+      encrypted: true
+    });
+
+    var channel = pusher.subscribe('game');
+    channel.bind('change', function(data) {
+
+      var board = data.message.board
+
+      cell = Object.keys(board)[0];
+      value = board[cell];
+      id = cell + value;
+
+      if(value == 'X'){
+        icon = $("<i class='glyphicon glyphicon-king' style='font-size: xx-large'>")
+      }
+      else{
+        icon = $("<i class='glyphicon glyphicon-queen' style='font-size: xx-large'>")
+      }
+
+      $('input[name='+cell+']').replaceWith(icon);
+    });
+  });
+

@@ -1,6 +1,16 @@
 class GamesController < ApplicationController
-  before_action :find_game
-  before_action :find_token
+  before_action :find_game, only: [:play, :show, :update]
+  before_action :find_token, only: [:play, :update]
+
+  def create
+    @game = Game.create
+    
+    respond_to do |format|
+      if @game.save
+        format.html{ redirect_to game_path(@game.token1), notice: 'Game successfully created' }
+      end
+    end
+  end
 
   def show
     respond_to do |format|
@@ -8,6 +18,12 @@ class GamesController < ApplicationController
       format.json{
         render json: @game
       }
+    end
+  end
+
+  def play
+    respond_to do |format|
+      format.html
     end
   end
 

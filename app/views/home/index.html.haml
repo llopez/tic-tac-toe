@@ -1,0 +1,6 @@
+.row
+  .col-md-4.col-md-offset-4.text-center
+    %h1 TIC - TAC - TOE
+    %p.lead Click the below button to start a new game
+    = form_tag games_path do
+      = submit_tag 'Start', class: 'btn btn-default'
