@@ -1,15 +1,33 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  player_1: 1
-  player_2: 1
-  board: MyText
-  turn: 1
-  status: MyString
+pending:
+  token1: a1
+  token2: a2
+  board:
+    '11': null
+    '12': null
+    '13': null
+    '21': null
+    '22': null
+    '23': null
+    '31': null
+    '32': null
+    '33': null
+  turn: a1
+  status: pending
 
-two:
-  player_1: 1
-  player_2: 1
-  board: MyText
-  turn: 1
-  status: MyString
+playing:
+  token1: a1
+  token2: a2
+  board:
+    '11': a2
+    '12': a1
+    '13': null
+    '21': null
+    '22': null
+    '23': null
+    '31': null
+    '32': null
+    '33': null
+  turn: a1
+  status: playing     

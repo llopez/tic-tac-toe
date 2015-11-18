@@ -28,11 +28,11 @@ class GamesController < ApplicationController
   end
 
   def update
-    move = Movement.new(@game, @token, game_params)
-
     respond_to do |format|
-      if move.valid?
-        move.perform
+      if MovementValidator.valid?(@game, @token, game_params[:cell])
+
+        Board.move(@game, @token, game_params[:cell])
+
         format.json{ render json: @game, status: :ok }
       else
         format.json{ render json: @game, status: :bad_request }
