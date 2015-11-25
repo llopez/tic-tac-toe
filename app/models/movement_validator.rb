@@ -14,7 +14,7 @@ class MovementValidator
   end
 
   def valid_turn?
-    @game.turn == @token
+    @game.turn != @token
   end
 
   def valid_cell?

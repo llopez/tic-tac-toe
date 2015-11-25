@@ -13,7 +13,7 @@ pending:
     '31': null
     '32': null
     '33': null
-  turn: a1
+  turn: a2
   status: pending
 
 playing:
@@ -29,5 +29,5 @@ playing:
     '31': null
     '32': null
     '33': null
-  turn: a1
+  turn: a2
   status: playing     

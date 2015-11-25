@@ -37,7 +37,7 @@
       for(var i = 0; i < cells.length; i++){
         var cell = cells[i];
         if(board[cell]){
-          if(board[cell] == 'X'){
+          if(board[cell] == '#{@game.token1}'){
             icon = $("<i class='glyphicon glyphicon-king' style='font-size: xx-large'>")
           }
           else{
@@ -73,7 +73,7 @@
       value = board[cell];
       id = cell + value;
 
-      if(value == 'X'){
+      if(value == '#{@game.token1}'){
         icon = $("<i class='glyphicon glyphicon-king' style='font-size: xx-large'>")
       }
       else{

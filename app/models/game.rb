@@ -18,7 +18,7 @@ class Game < ActiveRecord::Base
     }
     self.token1 = SecureRandom.hex(4)
     self.token2 = SecureRandom.hex(4)
-    self.turn = self.token1
+    self.turn = self.token2
     self.status = 'playing'
   end
 
