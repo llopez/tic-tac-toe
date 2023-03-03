@@ -1,0 +1,11 @@
+.cell {
+  width: 100px;
+  height: 100px;
+  font-size: 5em;
+  cursor: pointer;
+}
+
+.cell:hover {
+  background-color: rgb(18, 189, 198);
+}
+
