@@ -2,13 +2,12 @@ import { useEffect, useState } from "react"
 import {
   useAccount,
   usePrepareContractWrite,
-  useContractEvent, useContractWrite, useConnect, useContractRead, useDisconnect,
+  useContractEvent, useContractWrite, useContractRead,
   readContracts
 } from "wagmi"
 
 import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
 import { BigNumber, ethers } from "ethers"
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 
 import { Alert, Table } from "react-bootstrap"
 
@@ -27,10 +26,8 @@ interface Game {
 }
 
 const List = () => {
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const [_isConnected, _setIsConnected] = useState(false)
-  const { connect } = useConnect({ connector: new MetaMaskConnector() })
-  const { disconnect } = useDisconnect()
 
   const [games, setGames] = useState<Game[]>([])
 
