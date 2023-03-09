@@ -28,30 +28,39 @@ const Line = (props: React.PropsWithChildren) => {
   </div>
 }
 
-const Board = () => {
-  const [board, setBoard] = useState(new Array(9).fill(null))
+interface BoardProps {
+  data: string[],
+  onSelected: (position: number) => void,
+}
+
+const Board = (props: BoardProps) => {
+
+  const { data, onSelected } = props;
+
+  const [board, setBoard] = useState(data)
   const [player, setPlayer] = useState('X')
 
-  const handleSelected = (position: number) => {
+  const handleCellChange = (position: number) => {
     if (board[position] !== null) { return }
 
     const newBoard = [...board]
     newBoard[position] = player
     setBoard(newBoard)
     setPlayer(player === 'X' ? 'O' : 'X');
+    onSelected(position)
   }
 
   return <div className="d-flex align-items-center flex-column">
     <Line>
-      {board.slice(0, 3).map((cell, index) => <Cell key={index} position={index} onSelected={handleSelected}>{cell}</Cell>)}
+      {board.slice(0, 3).map((cell, index) => <Cell key={index} position={index} onSelected={handleCellChange}>{cell}</Cell>)}
     </Line>
 
     <Line>
-      {board.slice(3, 6).map((cell, index) => <Cell key={index} position={index + 3} onSelected={handleSelected}>{cell}</Cell>)}
+      {board.slice(3, 6).map((cell, index) => <Cell key={index} position={index + 3} onSelected={handleCellChange}>{cell}</Cell>)}
     </Line>
 
     <Line>
-      {board.slice(6, 9).map((cell, index) => <Cell key={index} position={index + 6} onSelected={handleSelected}>{cell}</Cell>)}
+      {board.slice(6, 9).map((cell, index) => <Cell key={index} position={index + 6} onSelected={handleCellChange}>{cell}</Cell>)}
     </Line>
   </div>
 }

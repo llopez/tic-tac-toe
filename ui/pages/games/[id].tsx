@@ -79,6 +79,10 @@ const Game = () => {
     }
   }, [id])
 
+  const handleBoardChange = (position: number) => {
+    console.log('handleBoardChange', position)
+  }
+
   return <div>
     <h1>Game {id}</h1>
 
@@ -91,7 +95,7 @@ const Game = () => {
     }
 
     <div>
-      <Board />
+      <Board data={new Array(9).fill(null)} onSelected={handleBoardChange} />
     </div>
   </div>
 }
