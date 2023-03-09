@@ -11,14 +11,14 @@ import { BigNumber, ethers } from "ethers"
 
 import { Alert, Table } from "react-bootstrap"
 
-interface RawGame {
+export interface RawGame {
   id: BigNumber
   player1: string
   player2: string
   state: number
 }
 
-interface Game {
+export interface Game {
   id: number
   player1: string
   player2: string
@@ -58,7 +58,6 @@ const List = () => {
     abi: TicTacToe.abi,
     args: []
   })
-
 
   useEffect(() => {
     (async () => {
