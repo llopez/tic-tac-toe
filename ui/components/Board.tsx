@@ -1,5 +1,5 @@
 import styles from '@/styles/board.module.css'
-import { useState } from 'react'
+import { ethers } from 'ethers'
 
 interface CellProps extends React.PropsWithChildren<{}> {
   onSelected: (position: number) => void
@@ -30,37 +30,41 @@ const Line = (props: React.PropsWithChildren) => {
 
 interface BoardProps {
   data: string[],
+  player1: string,
+  player2: string,
   onSelected: (position: number) => void,
 }
 
 const Board = (props: BoardProps) => {
-
-  const { data, onSelected } = props;
-
-  const [board, setBoard] = useState(data)
-  const [player, setPlayer] = useState('X')
+  const { data, onSelected, player1 } = props;
 
   const handleCellChange = (position: number) => {
-    if (board[position] !== null) { return }
-
-    const newBoard = [...board]
-    newBoard[position] = player
-    setBoard(newBoard)
-    setPlayer(player === 'X' ? 'O' : 'X');
     onSelected(position)
+  }
+
+  const symbol = (address: string) => {
+    if (address === ethers.constants.AddressZero) {
+      return null
+    }
+
+    if (address === player1) {
+      return 'X'
+    }
+
+    return 'O'
   }
 
   return <div className="d-flex align-items-center flex-column">
     <Line>
-      {board.slice(0, 3).map((cell, index) => <Cell key={index} position={index} onSelected={handleCellChange}>{cell}</Cell>)}
+      {data.slice(0, 3).map((address, index) => <Cell key={index} position={index} onSelected={handleCellChange}>{symbol(address)}</Cell>)}
     </Line>
 
     <Line>
-      {board.slice(3, 6).map((cell, index) => <Cell key={index} position={index + 3} onSelected={handleCellChange}>{cell}</Cell>)}
+      {data.slice(3, 6).map((address, index) => <Cell key={index} position={index + 3} onSelected={handleCellChange}>{symbol(address)}</Cell>)}
     </Line>
 
     <Line>
-      {board.slice(6, 9).map((cell, index) => <Cell key={index} position={index + 6} onSelected={handleCellChange}>{cell}</Cell>)}
+      {data.slice(6, 9).map((address, index) => <Cell key={index} position={index + 6} onSelected={handleCellChange}>{symbol(address)}</Cell>)}
     </Line>
   </div>
 }

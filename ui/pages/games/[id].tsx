@@ -5,7 +5,7 @@ import {
   useContractWrite,
   useContractEvent,
 } from "wagmi"
-import { readContract } from "@wagmi/core"
+import { readContract, readContracts } from "@wagmi/core"
 import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
 import { Button } from "react-bootstrap"
 import { BigNumber, ethers } from "ethers"
@@ -15,6 +15,7 @@ import { Game, RawGame } from "."
 const Game = () => {
   const router = useRouter()
   const [game, setGame] = useState<Game | null>(null)
+  const [board, setBoard] = useState<string[]>([])
   const { id } = router.query
 
   const { config } = usePrepareContractWrite({
@@ -38,6 +39,23 @@ const Game = () => {
       ...data,
       id: data.id.toNumber(),
     })
+  }
+
+  const fetchBoard = async (gameId: string) => {
+    const count = Array(9).keys()
+
+    const data = await readContracts({
+      contracts: Array.from(count).map(position => ({
+        address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+        abi: TicTacToe.abi,
+        functionName: 'boards',
+        args: [gameId, position]
+      })),
+    }) as string[]
+
+    setBoard(data)
+
+    console.log(data)
   }
 
   useContractEvent({
@@ -76,6 +94,7 @@ const Game = () => {
   useEffect(() => {
     if (id) {
       fetchGame(id as string)
+      fetchBoard(id as string)
     }
   }, [id])
 
@@ -95,7 +114,12 @@ const Game = () => {
     }
 
     <div>
-      <Board data={new Array(9).fill(null)} onSelected={handleBoardChange} />
+      <Board
+        data={board}
+        onSelected={handleBoardChange}
+        player1={game?.player1}
+        player2={game?.player2}
+      />
     </div>
   </div>
 }
