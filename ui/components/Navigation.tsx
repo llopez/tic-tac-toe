@@ -4,10 +4,25 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Button, Image } from 'react-bootstrap';
 
-import { useAccount, useConnect, useDisconnect, useBalance } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useBalance, Address } from "wagmi";
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { useState, useEffect } from 'react';
 import { truncateEthAddress } from '@/lib/utils';
+
+interface TitleProps {
+  address: Address
+}
+
+export const Title = (props: TitleProps) => {
+  const { address } = props
+
+  return (
+    <>
+      <Image src={`https://effigy.im/a/${address}.png`} alt="avatar" rounded style={{ width: 24 }} />
+      <span className='p-2'>{address && truncateEthAddress(address)}</span>
+    </>
+  )
+}
 
 const Navigation = () => {
   const { address, isConnected } = useAccount()
@@ -25,16 +40,6 @@ const Navigation = () => {
     isConnected
   ])
 
-
-  const Title = () => {
-    return (
-      <>
-        <Image src={`https://effigy.im/a/${address}.png`} alt="avatar" rounded style={{ width: 24 }} />
-        <span className='p-2'>{address && truncateEthAddress(address)}</span>
-      </>
-    )
-  }
-
   return (
     <Navbar bg="light" expand="lg">
       <Container>
@@ -49,7 +54,7 @@ const Navigation = () => {
             }
 
             {
-              _isConnected && <NavDropdown title={<Title />} id="basic-nav-dropdown" align="end">
+              _isConnected && <NavDropdown title={address && <Title address={address} />} id="basic-nav-dropdown" align="end">
                 <NavDropdown.Item disabled>{balance?.formatted} {balance?.symbol}</NavDropdown.Item>
                 <NavDropdown.Item disabled>10 TIC</NavDropdown.Item>
                 <NavDropdown.Divider />

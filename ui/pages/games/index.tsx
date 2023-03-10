@@ -3,29 +3,40 @@ import {
   useAccount,
   usePrepareContractWrite,
   useContractEvent, useContractWrite, useContractRead,
-  readContracts
+  readContracts,
+  Address
 } from "wagmi"
 
 import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
 import { BigNumber, ethers } from "ethers"
 
 import { Alert, Table } from "react-bootstrap"
+import List from "@/components/List"
 
 export interface RawGame {
   id: BigNumber
-  player1: string
-  player2: string
+  player1: Address
+  player2: Address
   state: number
+}
+
+export enum GameState {
+  WaitingForPlayer = 0,
+  Player1Turn = 1,
+  Player2Turn = 2,
+  Player1Won = 3,
+  Player2Won = 4,
+  Draw = 5,
 }
 
 export interface Game {
   id: number
-  player1: string
-  player2: string
-  state: number
+  player1: Address
+  player2: Address
+  state: GameState
 }
 
-const List = () => {
+const GamesPage = () => {
   const { isConnected } = useAccount()
   const [_isConnected, _setIsConnected] = useState(false)
 
@@ -103,7 +114,7 @@ const List = () => {
       "type": "event"
     }],
     eventName: 'GameCreated',
-    listener: (id: BigNumber, player1: string): void => {
+    listener: (id: BigNumber, player1: Address): void => {
       setGames((games) => [
         ...games.filter((g) => g.id !== id.toNumber()),
         { id: id.toNumber(), player1, player2: ethers.constants.AddressZero, state: 0 }
@@ -143,27 +154,8 @@ const List = () => {
       <button onClick={handleCreateGame}>New Game!</button>
     </div>
 
-    <Table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Host</th>
-          <th>Guest</th>
-          <th>State</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {games.map((game) => <tr key={game.id}>
-          <td>{game.id}</td>
-          <td>{game.player1}</td>
-          <td>{game.player2}</td>
-          <td>{game.state}</td>
-          <td><a href={`/games/${game.id}`}>Show</a></td>
-        </tr>)}
-      </tbody>
-    </Table>
+    <List items={games} />
   </div>
 }
 
-export default List
+export default GamesPage

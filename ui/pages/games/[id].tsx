@@ -7,12 +7,14 @@ import {
 } from "wagmi"
 import { readContract, readContracts, writeContract, prepareWriteContract, Address } from "@wagmi/core"
 import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
-import { Button } from "react-bootstrap"
-import { BigNumber, ethers } from "ethers"
+import { Button, Card, Badge } from "react-bootstrap"
+import { BigNumber } from "ethers"
 import { useEffect, useState } from "react"
-import { Game, RawGame } from "."
+import { Game, GameState, RawGame } from "."
+import { Title } from "@/components/Navigation"
+import { CaretLeft, Trophy } from "react-bootstrap-icons"
 
-const Game = () => {
+const GamePage = () => {
   const router = useRouter()
   const [game, setGame] = useState<Game | null>(null)
   const [board, setBoard] = useState<string[]>([])
@@ -126,10 +128,10 @@ const Game = () => {
       "type": "event"
     }],
     eventName: 'MoveMade',
-    listener: async (id: BigNumber, player: Address, position: number): Promise<void> => {
-      await fetchBoard(id.toString())
-      await fetchGame(id.toString())
-      console.log('MoveMade', id.toNumber(), player, position);
+    listener: async (gameId: BigNumber, player: Address, position: number): Promise<void> => {
+      await fetchBoard(id as string)
+      await fetchGame(id as string)
+      console.log('MoveMade', gameId.toNumber(), player, position);
     }
   })
 
@@ -138,6 +140,7 @@ const Game = () => {
   }
 
   useEffect(() => {
+    console.log("id", id)
     if (id) {
       fetchGame(id as string)
       fetchBoard(id as string)
@@ -149,26 +152,43 @@ const Game = () => {
     console.log('handleBoardChange', position)
   }
 
+  if (game === null) {
+    return <div>Loading...</div>
+  }
+
   return <div>
-    <h1>Game {id}</h1>
-
-    <p>Player 1: {game?.player1}</p>
-    <p>Player 2: {game?.player2 === ethers.constants.AddressZero ? 'waiting' : game?.player2}</p>
-    <p>State: {game?.state}</p>
-
     {
-      game?.state === 0 && <Button onClick={handleJoinGame}>Join Game</Button>
+      game.state === 0 && <Button onClick={handleJoinGame}>Join Game</Button>
     }
-
-    <div>
-      <Board
-        data={board}
-        onSelected={handleBoardChange}
-        player1={game?.player1}
-        player2={game?.player2}
-      />
-    </div>
+    <Card className="mt-1 me-1">
+      <Card.Body>
+        <Card.Title>Game {id}</Card.Title>
+        <Card.Subtitle className="mb-2 text-muted">
+          <Badge bg="primary">
+            {GameState[game.state]}
+          </Badge>
+        </Card.Subtitle>
+        <Card.Text>
+          <Title address={game.player1} />
+          {game.state === GameState.Player1Turn && <CaretLeft size={24} />}
+          {game.state === GameState.Player1Won && <Trophy size={24} />}
+        </Card.Text>
+        <Card.Text>
+          <Title address={game.player2} />
+          {game.state === GameState.Player2Turn && <CaretLeft size={24} />}
+          {game.state === GameState.Player2Won && <Trophy size={24} />}
+        </Card.Text>
+        <Card.Body>
+          <Board
+            data={board}
+            onSelected={handleBoardChange}
+            player1={game.player1}
+            player2={game.player2}
+          />
+        </Card.Body>
+      </Card.Body>
+    </Card>
   </div>
 }
 
-export default Game
+export default GamePage

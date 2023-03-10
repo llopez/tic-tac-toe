@@ -24,7 +24,7 @@ const client = createClient({
 const Layout = (props: React.PropsWithChildren) => {
   const { children } = props
 
-  return <Container>
+  return <Container fluid>
     <WagmiConfig client={client}>
       <Navigation />
       <Container className="mt-2">

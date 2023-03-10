@@ -30,8 +30,8 @@ const Line = (props: React.PropsWithChildren) => {
 
 interface BoardProps {
   data: string[],
-  player1: string,
-  player2: string,
+  player1?: string,
+  player2?: string,
   onSelected: (position: number) => void,
 }
 
