@@ -5,7 +5,7 @@ import {
   useContractWrite,
   useContractEvent,
 } from "wagmi"
-import { readContract, readContracts } from "@wagmi/core"
+import { readContract, readContracts, writeContract, prepareWriteContract, Address } from "@wagmi/core"
 import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
 import { Button } from "react-bootstrap"
 import { BigNumber, ethers } from "ethers"
@@ -26,6 +26,17 @@ const Game = () => {
   })
 
   const { write } = useContractWrite(config)
+
+  const makeMove = async (position: number): Promise<void> => {
+    const config = await prepareWriteContract({
+      address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+      abi: TicTacToe.abi,
+      functionName: 'makeMove',
+      args: [id, position]
+    })
+
+    await writeContract(config)
+  }
 
   const fetchGame = async (gameId: string) => {
     const data = await readContract({
@@ -87,6 +98,41 @@ const Game = () => {
     }
   })
 
+  useContractEvent({
+    address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    abi: [{
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "id",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "position",
+          "type": "uint8"
+        }
+      ],
+      "name": "MoveMade",
+      "type": "event"
+    }],
+    eventName: 'MoveMade',
+    listener: async (id: BigNumber, player: Address, position: number): Promise<void> => {
+      await fetchBoard(id.toString())
+      await fetchGame(id.toString())
+      console.log('MoveMade', id.toNumber(), player, position);
+    }
+  })
+
   const handleJoinGame = () => {
     write?.()
   }
@@ -98,7 +144,8 @@ const Game = () => {
     }
   }, [id])
 
-  const handleBoardChange = (position: number) => {
+  const handleBoardChange = async (position: number): Promise<void> => {
+    await makeMove(position)
     console.log('handleBoardChange', position)
   }
 
