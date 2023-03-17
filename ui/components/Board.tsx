@@ -47,7 +47,7 @@ const Board = (props: BoardProps) => {
       return null
     }
 
-    if (address === player1) {
+    if (address === player1)  {
       return 'X'
     }
 

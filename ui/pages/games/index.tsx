@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import {
   useAccount,
   usePrepareContractWrite,
@@ -9,38 +9,18 @@ import {
 
 import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
 import { BigNumber, ethers } from "ethers"
-
-import { Alert, Table } from "react-bootstrap"
+import { Alert } from "react-bootstrap"
 import List from "@/components/List"
-
-export interface RawGame {
-  id: BigNumber
-  player1: Address
-  player2: Address
-  state: number
-}
-
-export enum GameState {
-  WaitingForPlayer = 0,
-  Player1Turn = 1,
-  Player2Turn = 2,
-  Player1Won = 3,
-  Player2Won = 4,
-  Draw = 5,
-}
-
-export interface Game {
-  id: number
-  player1: Address
-  player2: Address
-  state: GameState
-}
+import { I_Game_Response } from "@/types"
+import { Context } from "@/components/StateProvider"
+import { E_GameActionType } from "@/reducers/games"
+import { E_NotificationActionType } from "@/reducers/notifications"
 
 const GamesPage = () => {
   const { isConnected } = useAccount()
   const [_isConnected, _setIsConnected] = useState(false)
 
-  const [games, setGames] = useState<Game[]>([])
+  const [{ games }, dispatch] = useContext(Context)
 
   const { data: gameCount } = useContractRead({
     address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
@@ -81,16 +61,17 @@ const GamesPage = () => {
           functionName: 'games',
           args: [i]
         }))
-      }) as RawGame[]
+      }) as I_Game_Response[]
 
       if (res[0] === null) { return }
 
-      setGames(res.map(({ id, player1, player2, state }) => ({ id: id.toNumber(), player1, player2, state })))
+      dispatch({
+        type: E_GameActionType.LoadGames,
+        payload: res.map(({ id, player1, player2, state }) => ({ id: id.toNumber(), player1, player2, state }))
+      })
 
     })()
-
-
-  }, [gameCount])
+  }, [gameCount, dispatch])
 
   useContractEvent({
     address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
@@ -115,10 +96,18 @@ const GamesPage = () => {
     }],
     eventName: 'GameCreated',
     listener: (id: BigNumber, player1: Address): void => {
-      setGames((games) => [
-        ...games.filter((g) => g.id !== id.toNumber()),
-        { id: id.toNumber(), player1, player2: ethers.constants.AddressZero, state: 0 }
-      ])
+      // this is because hardhat is not emitting events correctly
+      if (games[id.toNumber()]) { return }
+
+      dispatch({
+        type: E_GameActionType.AddGame,
+        payload: { id: id.toNumber(), player1, player2: ethers.constants.AddressZero, state: 0 }
+      })
+
+      dispatch({
+        type: E_NotificationActionType.AddNotification,
+        payload: { id: id.toNumber(), title: 'Game Created', body: `Game ${id.toNumber()} created by ${player1}` }
+      })
 
       console.log('GameCreated', id.toNumber(), player1);
     }

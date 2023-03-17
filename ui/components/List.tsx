@@ -1,13 +1,13 @@
-import { Game, GameState } from "@/pages/games"
+import { E_Game_State, I_Game } from "@/types"
 import { Card, Badge } from "react-bootstrap"
 import { Title } from "./Navigation"
 
 interface ListProps {
-  items: Game[]
+  items: I_Game[]
 }
 
 interface ItemProps {
-  item: Game
+  item: I_Game
 }
 
 const Item = (props: ItemProps) => {
@@ -19,7 +19,7 @@ const Item = (props: ItemProps) => {
       <Card.Title>Game {id}</Card.Title>
       <Card.Subtitle className="mb-2 text-muted">
         <Badge bg="primary">
-          {GameState[state]}
+          {E_Game_State[state]}
         </Badge>
       </Card.Subtitle>
       <Card.Text><Title address={item.player1} /></Card.Text>
