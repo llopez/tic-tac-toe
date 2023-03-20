@@ -7,6 +7,7 @@ import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import Navigation from "./Navigation";
 import Notifications from "./Notifications";
 import { StateProvider } from "./StateProvider";
+import Transaction from "./Transaction";
 
 const { provider, webSocketProvider, chains } = configureChains(
   [mainnet, polygon, goerli, hardhat],
@@ -30,6 +31,7 @@ const Layout = (props: React.PropsWithChildren) => {
       <WagmiConfig client={client}>
         <Navigation />
         <Notifications />
+        <Transaction />
         <Container className="mt-2">
           {children}
         </Container>

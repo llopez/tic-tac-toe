@@ -25,7 +25,18 @@ export interface I_Game_Response {
 }
 
 export interface I_Notification {
-  id: number;
+  id: string;
   title: string;
   body: string;
+}
+
+export enum E_Transaction_Action {
+  CreateGame = 0,
+  JoinGame = 1,
+  MakeMove = 2,
+}
+
+export interface I_Transaction {
+  hash: Address;
+  action: E_Transaction_Action;
 }

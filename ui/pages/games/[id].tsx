@@ -12,71 +12,32 @@ import { BigNumber } from "ethers"
 import { useContext, useEffect, useState } from "react"
 import { Title } from "@/components/Navigation"
 import { CaretLeft, Trophy } from "react-bootstrap-icons"
-import { E_Game_State, I_Game, I_Game_Response } from "@/types"
+import { E_Game_State, E_Transaction_Action, I_Game, I_Game_Response } from "@/types"
 import { Context } from "@/components/StateProvider"
 import { E_NotificationActionType } from "@/reducers/notifications"
+import { E_TransactionActionType } from "@/reducers/transaction"
+
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as Address
 
 const GamePage = () => {
   const router = useRouter()
   const [game, setGame] = useState<I_Game | null>(null)
   const [board, setBoard] = useState<string[]>([])
   const { id } = router.query
-
   const [, dispatch] = useContext(Context)
 
-  const { config } = usePrepareContractWrite({
-    address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-    functionName: 'joinGame',
-    abi: TicTacToe.abi,
-    args: [id]
-  })
-
-  const { write } = useContractWrite(config)
-
-  const makeMove = async (position: number): Promise<void> => {
-    const config = await prepareWriteContract({
-      address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-      abi: TicTacToe.abi,
-      functionName: 'makeMove',
-      args: [id, position]
-    })
-
-    await writeContract(config)
-  }
-
-  const fetchGame = async (gameId: string) => {
-    const data = await readContract({
-      address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-      abi: TicTacToe.abi,
-      functionName: 'games',
-      args: [gameId]
-    }) as I_Game_Response
-
-    setGame({
-      ...data,
-      id: data.id.toNumber(),
-    })
-  }
-
-  const fetchBoard = async (gameId: string) => {
-    const count = Array(9).keys()
-
-    const data = await readContracts({
-      contracts: Array.from(count).map(position => ({
-        address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-        abi: TicTacToe.abi,
-        functionName: 'boards',
-        args: [gameId, position]
-      })),
-    }) as string[]
-
-    setBoard(data)
-
-    console.log(data)
-  }
+  useEffect(() => {
+    console.log("id", id)
+    if (id) {
+      (async () => {
+        await fetchGame(id as string)
+        await fetchBoard(id as string)
+      })()
+    }
+  }, [id])
 
   useContractEvent({
-    address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    address: CONTRACT_ADDRESS,
     abi: [{
       "anonymous": false,
       "inputs": [
@@ -100,12 +61,18 @@ const GamePage = () => {
     listener: async (id: BigNumber, guest: string): Promise<void> => {
       await fetchGame(id.toString())
 
+      const notificationId = 'PlayerJoined'
+        .concat('-')
+        .concat(id.toString())
+        .concat('-')
+        .concat(guest)
+
       dispatch({
         type: E_NotificationActionType.AddNotification,
         payload: {
           title: 'Player Joined',
           body: `${guest} has joined the game`,
-          id: id.toNumber()
+          id: notificationId
         }
       })
 
@@ -114,7 +81,7 @@ const GamePage = () => {
   })
 
   useContractEvent({
-    address: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
+    address: CONTRACT_ADDRESS,
     abi: [{
       "anonymous": false,
       "inputs": [
@@ -142,32 +109,109 @@ const GamePage = () => {
     }],
     eventName: 'MoveMade',
     listener: async (gameId: BigNumber, player: Address, position: number): Promise<void> => {
-      await fetchBoard(id as string)
+      console.log('MoveMade', gameId.toNumber(), player, position);
+
+      setBoard((prev) => {
+        const newBoard = [...prev]
+        newBoard[position] = player
+        return newBoard
+      })
+
       await fetchGame(id as string)
+
+      const notificationId = 'MoveMade'
+        .concat('-')
+        .concat(gameId.toString())
+        .concat('-')
+        .concat(player)
+        .concat('-')
+        .concat(position.toString())
 
       dispatch({
         type: E_NotificationActionType.AddNotification, payload: {
           title: 'Move Made',
           body: `${player} has made a move`,
-          id: gameId.toNumber()
+          id: notificationId
         }
       })
-
-      console.log('MoveMade', gameId.toNumber(), player, position);
     }
   })
 
-  const handleJoinGame = () => {
-    write?.()
-  }
+  const { config: joinGameConfig } = usePrepareContractWrite({
+    address: CONTRACT_ADDRESS,
+    functionName: 'joinGame',
+    abi: TicTacToe.abi,
+    args: [id]
+  })
+
+  const { write: joinGameWrite, data: joinGameData } = useContractWrite(joinGameConfig)
 
   useEffect(() => {
-    console.log("id", id)
-    if (id) {
-      fetchGame(id as string)
-      fetchBoard(id as string)
+    if (joinGameData) {
+      dispatch({
+        type: E_TransactionActionType.AddTransaction,
+        payload: {
+          hash: joinGameData.hash,
+          action: E_Transaction_Action.JoinGame
+        }
+      })
     }
-  }, [id])
+  }, [joinGameData, dispatch])
+
+  const makeMove = async (position: number): Promise<void> => {
+    const config = await prepareWriteContract({
+      address: CONTRACT_ADDRESS,
+      abi: TicTacToe.abi,
+      functionName: 'makeMove',
+      args: [id, position]
+    })
+
+    const { hash } = await writeContract(config)
+
+    dispatch({
+      type: E_TransactionActionType.AddTransaction,
+      payload: {
+        hash,
+        action: E_Transaction_Action.MakeMove
+      }
+    })
+  }
+
+  const fetchGame = async (gameId: string) => {
+    const data = await readContract({
+      address: CONTRACT_ADDRESS,
+      abi: TicTacToe.abi,
+      functionName: 'games',
+      args: [gameId]
+    }) as I_Game_Response
+
+    setGame({
+      ...data,
+      id: data.id.toNumber(),
+    })
+  }
+
+  const fetchBoard = async (gameId: string) => {
+    console.log('fetchBoard', gameId)
+    const count = Array(9).keys()
+
+    const data = await readContracts({
+      contracts: Array.from(count).map(position => ({
+        address: CONTRACT_ADDRESS,
+        abi: TicTacToe.abi,
+        functionName: 'boards',
+        args: [gameId, position]
+      })),
+    }) as string[]
+
+    setBoard(data)
+
+    console.log(data)
+  }
+
+  const handleJoinGame = () => {
+    joinGameWrite?.()
+  }
 
   const handleBoardChange = async (position: number): Promise<void> => {
     await makeMove(position)

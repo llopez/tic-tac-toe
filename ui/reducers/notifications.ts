@@ -11,7 +11,7 @@ export interface I_AddNotificationAction {
 }
 
 interface I_RemoveNotificationPayload {
-  id: number;
+  id: string;
 }
 
 export interface I_RemoveNotificationAction {
