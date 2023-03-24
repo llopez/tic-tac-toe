@@ -4,11 +4,12 @@ import {
   usePrepareContractWrite,
   useContractWrite,
   useContractEvent,
+  useAccount,
 } from "wagmi"
 import { readContract, readContracts, writeContract, prepareWriteContract, Address } from "@wagmi/core"
 import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
 import { Button, Card, Badge } from "react-bootstrap"
-import { BigNumber } from "ethers"
+import { BigNumber, ethers } from "ethers"
 import { useContext, useEffect, useState } from "react"
 import { Title } from "@/components/Navigation"
 import { CaretLeft, Trophy } from "react-bootstrap-icons"
@@ -23,6 +24,7 @@ const GamePage = () => {
   const router = useRouter()
   const [game, setGame] = useState<I_Game | null>(null)
   const [board, setBoard] = useState<string[]>([])
+  const { address } = useAccount()
   const { id } = router.query
   const [, dispatch] = useContext(Context)
 
@@ -141,7 +143,8 @@ const GamePage = () => {
     address: CONTRACT_ADDRESS,
     functionName: 'joinGame',
     abi: TicTacToe.abi,
-    args: [id]
+    args: [id],
+    enabled: game?.state === E_Game_State.WaitingForPlayer
   })
 
   const { write: joinGameWrite, data: joinGameData } = useContractWrite(joinGameConfig)
@@ -213,7 +216,26 @@ const GamePage = () => {
     joinGameWrite?.()
   }
 
+  const isYourTurn = () => {
+    if (game === null) { return false }
+    if (game.state === E_Game_State.Player1Turn && address === game.player1) { return true }
+    if (game.state === E_Game_State.Player2Turn && address === game.player2) { return true }
+
+    return false
+  }
+
+  const notYourTurn = !isYourTurn()
+
   const handleBoardChange = async (position: number): Promise<void> => {
+    if (board[position] !== ethers.constants.AddressZero) {
+      console.log("Cell already taken")
+      return
+    }
+    if (notYourTurn) {
+      console.log("Not your turn")
+      return
+    }
+
     await makeMove(position)
     console.log('handleBoardChange', position)
   }
