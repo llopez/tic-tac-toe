@@ -75,6 +75,15 @@ describe("TicTacToe", () => {
         ticTacToe.connect(otherAccount).joinGame(0)
       ).to.be.revertedWith("Game is full");
     });
+
+    it("fails if the player is already in the game", async () => {
+      const { ticTacToe } = await loadFixture(deploy);
+
+      await ticTacToe.createGame();
+      await expect(ticTacToe.joinGame(0)).to.be.revertedWith(
+        "Player already in"
+      );
+    });
   });
 
   describe("makeMove", () => {

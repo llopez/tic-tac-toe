@@ -53,6 +53,8 @@ contract TicTacToe {
     function joinGame(uint id) public {
         require(games[id].player1 != address(0), "Game does not exist");
         require(games[id].player2 == address(0), "Game is full");
+        require(games[id].player1 != msg.sender, "Player already in");
+
         games[id].player2 = msg.sender;
         games[id].state = State.Player2Turn;
 
