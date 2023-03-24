@@ -7,7 +7,7 @@ import {
   useAccount,
 } from "wagmi"
 import { readContract, readContracts, writeContract, prepareWriteContract, Address } from "@wagmi/core"
-import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
+import TicTacToe from '@/abis/TicTacToe.json'
 import { Button, Card, Badge } from "react-bootstrap"
 import { BigNumber, ethers } from "ethers"
 import { useContext, useEffect, useState } from "react"

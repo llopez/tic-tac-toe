@@ -7,7 +7,7 @@ import {
   Address,
 } from "wagmi"
 
-import TicTacToe from '../../../artifacts/contracts/TicTacToe.sol/TicTacToe.json'
+import TicTacToe from '@/abis/TicTacToe.json'
 import { BigNumber, ethers } from "ethers"
 import { Alert } from "react-bootstrap"
 import List from "@/components/List"
