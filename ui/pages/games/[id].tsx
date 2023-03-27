@@ -3,8 +3,8 @@ import { useRouter } from "next/router"
 import {
   usePrepareContractWrite,
   useContractWrite,
-  useContractEvent,
   useAccount,
+  useProvider,
 } from "wagmi"
 import { readContract, readContracts, writeContract, prepareWriteContract, Address } from "@wagmi/core"
 import TicTacToe from '@/abis/TicTacToe.json'
@@ -25,6 +25,7 @@ const GamePage = () => {
   const [game, setGame] = useState<I_Game | null>(null)
   const [board, setBoard] = useState<string[]>([])
   const { address } = useAccount()
+  const provider = useProvider()
   const { id } = router.query
   const [, dispatch] = useContext(Context)
 
@@ -38,80 +39,30 @@ const GamePage = () => {
     }
   }, [id])
 
-  useContractEvent({
-    address: CONTRACT_ADDRESS,
-    abi: [{
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        }
-      ],
-      "name": "PlayerJoined",
-      "type": "event"
-    },],
-    eventName: 'PlayerJoined',
-    listener: async (id: BigNumber, guest: string): Promise<void> => {
-      await fetchGame(id.toString())
+
+  useEffect(() => {
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, TicTacToe.abi, provider)
+
+    contract.on('PlayerJoined', async (gameId: BigNumber, player: Address) => {
+      console.log('Contract PlayerJoined', gameId.toNumber(), player);
 
       const notificationId = 'PlayerJoined'
         .concat('-')
-        .concat(id.toString())
+        .concat(gameId.toString())
         .concat('-')
-        .concat(guest)
+        .concat(player)
 
       dispatch({
-        type: E_NotificationActionType.AddNotification,
-        payload: {
+        type: E_NotificationActionType.AddNotification, payload: {
           title: 'Player Joined',
-          body: `${guest} has joined the game`,
+          body: `${player} has joined the game`,
           id: notificationId
         }
       })
+    })
 
-      console.log('PlayerJoined', id.toNumber(), guest);
-    }
-  })
-
-  useContractEvent({
-    address: CONTRACT_ADDRESS,
-    abi: [{
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint8",
-          "name": "position",
-          "type": "uint8"
-        }
-      ],
-      "name": "MoveMade",
-      "type": "event"
-    }],
-    eventName: 'MoveMade',
-    listener: async (gameId: BigNumber, player: Address, position: number): Promise<void> => {
-      console.log('MoveMade', gameId.toNumber(), player, position);
+    contract.on('MoveMade', async (gameId: BigNumber, player: Address, position: number) => {
+      console.log('Contract MoveMade', gameId.toNumber(), player, position);
 
       setBoard((prev) => {
         const newBoard = [...prev]
@@ -119,7 +70,7 @@ const GamePage = () => {
         return newBoard
       })
 
-      await fetchGame(id as string)
+      await fetchGame(gameId.toString())
 
       const notificationId = 'MoveMade'
         .concat('-')
@@ -136,8 +87,28 @@ const GamePage = () => {
           id: notificationId
         }
       })
+    })
+
+    contract.on('GameWon', async (gameId: BigNumber, winner: Address) => {
+      console.log('Contract GameWon', gameId.toNumber(), winner);
+
+      const notificationId = 'GameWon'
+        .concat('-')
+        .concat(gameId.toString())
+
+      dispatch({
+        type: E_NotificationActionType.AddNotification, payload: {
+          title: 'Game Finished',
+          body: `${winner} has won the game`,
+          id: notificationId
+        }
+      })
+    })
+
+    return () => {
+      contract.removeAllListeners()
     }
-  })
+  }, [provider, dispatch])
 
   const { config: joinGameConfig } = usePrepareContractWrite({
     address: CONTRACT_ADDRESS,
