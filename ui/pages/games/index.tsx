@@ -2,9 +2,10 @@ import { useContext, useEffect, useState } from "react"
 import {
   useAccount,
   usePrepareContractWrite,
-  useContractEvent, useContractWrite, useContractRead,
+  useContractWrite, useContractRead,
   readContracts,
   Address,
+  useProvider,
 } from "wagmi"
 
 import TicTacToe from '@/abis/TicTacToe.json'
@@ -23,54 +24,29 @@ const GamesPage = () => {
   const { isConnected } = useAccount()
   const [_isConnected, _setIsConnected] = useState(false)
   const [{ games }, dispatch] = useContext(Context)
+  const provider = useProvider()
 
-  useContractEvent({
-    address: CONTRACT_ADDRESS,
-    abi: [{
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "player1",
-          "type": "address"
-        }
-      ],
-      "name": "GameCreated",
-      "type": "event"
-    }],
-    eventName: 'GameCreated',
-    listener: (id: BigNumber, player1: Address): void => {
-      // this is because hardhat is not emitting events correctly
-      if (games[id.toNumber()]) { return }
+  useEffect(() => {
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, TicTacToe.abi, provider)
 
-      dispatch({
-        type: E_GameActionType.AddGame,
-        payload: { id: id.toNumber(), player1, player2: ethers.constants.AddressZero, state: 0 }
-      })
+    contract.on('GameCreated', async (gameId: BigNumber, player: Address) => {
+      console.log('Contract GameCreated', gameId.toNumber(), player);
 
       const notificationId = 'GameCreated'
         .concat('-')
-        .concat(id.toString())
+        .concat(gameId.toString())
 
       dispatch({
-        type: E_NotificationActionType.AddNotification,
-        payload: {
-          id: notificationId,
+        type: E_NotificationActionType.AddNotification, payload: {
           title: 'Game Created',
-          body: `Game ${id.toNumber()} created by ${player1}`
+          body: `${player} has created a game with id ${gameId.toNumber()}`,
+          id: notificationId
         }
       })
+    })
 
-      console.log('GameCreated', id.toNumber(), player1);
-    }
-  })
+  }, [provider, dispatch])
+
 
   const { data: gameCount } = useContractRead({
     address: CONTRACT_ADDRESS,
