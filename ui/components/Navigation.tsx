@@ -8,6 +8,7 @@ import { useAccount, useConnect, useDisconnect, useBalance, Address } from "wagm
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { useState, useEffect } from 'react';
 import { truncateEthAddress } from '@/lib/utils';
+import { NetworkSelector } from './NetwokSelector';
 
 interface TitleProps {
   address: Address
@@ -49,10 +50,11 @@ const Navigation = () => {
           <Nav>
             <Nav.Link href="/games">Games</Nav.Link>
             <Nav.Link href="/about">About</Nav.Link>
+
             {
               !_isConnected && <Button onClick={() => connect()} size="sm" variant='success'>Connect Wallet</Button>
             }
-
+            {_isConnected && <NetworkSelector />}
             {
               _isConnected && <NavDropdown title={address && <Title address={address} />} id="basic-nav-dropdown" align="end">
                 <NavDropdown.Item disabled>{balance?.formatted} {balance?.symbol}</NavDropdown.Item>
