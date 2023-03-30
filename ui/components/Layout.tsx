@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { Container, Alert } from "react-bootstrap"
-import { WagmiConfig, configureChains, createClient, Chain, useNetwork } from "wagmi";
+import { WagmiConfig, configureChains, createClient, Chain, useNetwork, useAccount } from "wagmi";
 import { goerli, hardhat } from 'wagmi/chains'
 import { publicProvider } from 'wagmi/providers/public'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
@@ -32,8 +32,19 @@ const client = createClient({
 
 const Layout = (props: React.PropsWithChildren) => {
   const { children } = props
+  const { isConnected } = useAccount()
+  const [_isConnected, _setIsConnected] = useState(false)
   const { chain } = useNetwork()
   const [networkSupported, setNetworkSupported] = useState(false)
+
+  useEffect(() => {
+    if (isConnected)
+      _setIsConnected(true)
+    else
+      _setIsConnected(false)
+  }, [
+    isConnected
+  ])
 
   useEffect(() => {
     const isSupportedNetwork = chain && availableChains.map(c => c.id).includes(chain.id)
@@ -48,10 +59,13 @@ const Layout = (props: React.PropsWithChildren) => {
         <Notifications />
         <Transaction />
         <Container className="mt-2">
-          {!networkSupported && <Alert variant="info">
+          {!_isConnected && <Alert variant="info">
+            Connect your wallet to play!
+          </Alert>}
+          {_isConnected && !networkSupported && <Alert variant="info">
             Network not supported, please change to goerli
           </Alert>}
-          {networkSupported && children}
+          {_isConnected && networkSupported && children}
         </Container>
       </WagmiConfig>
     </StateProvider>

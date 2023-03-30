@@ -46,6 +46,8 @@ const GamePage = () => {
     contract.on('PlayerJoined', async (gameId: BigNumber, player: Address) => {
       console.log('Contract PlayerJoined', gameId.toNumber(), player);
 
+      await fetchGame(gameId.toString())
+
       const notificationId = 'PlayerJoined'
         .concat('-')
         .concat(gameId.toString())
@@ -64,13 +66,13 @@ const GamePage = () => {
     contract.on('MoveMade', async (gameId: BigNumber, player: Address, position: number) => {
       console.log('Contract MoveMade', gameId.toNumber(), player, position);
 
+      await fetchGame(gameId.toString())
+
       setBoard((prev) => {
         const newBoard = [...prev]
         newBoard[position] = player
         return newBoard
       })
-
-      await fetchGame(gameId.toString())
 
       const notificationId = 'MoveMade'
         .concat('-')
@@ -100,6 +102,22 @@ const GamePage = () => {
         type: E_NotificationActionType.AddNotification, payload: {
           title: 'Game Finished',
           body: `${winner} has won the game`,
+          id: notificationId
+        }
+      })
+    })
+
+    contract.on('GameDraw', async (gameId: BigNumber) => {
+      console.log('Contract GameDraw', gameId.toNumber());
+
+      const notificationId = 'GameDraw'
+        .concat('-')
+        .concat(gameId.toString())
+
+      dispatch({
+        type: E_NotificationActionType.AddNotification, payload: {
+          title: 'Game Draw',
+          body: `Game ${gameId.toString()} has ended in a draw`,
           id: notificationId
         }
       })

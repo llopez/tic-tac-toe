@@ -1,6 +1,5 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect } from "react"
 import {
-  useAccount,
   usePrepareContractWrite,
   useContractWrite, useContractRead,
   readContracts,
@@ -10,9 +9,8 @@ import {
 
 import TicTacToe from '@/abis/TicTacToe.json'
 import { BigNumber, ethers } from "ethers"
-import { Alert } from "react-bootstrap"
 import List from "@/components/List"
-import { E_Transaction_Action, I_Game_Response } from "@/types"
+import { E_Game_State, E_Transaction_Action, I_Game_Response } from "@/types"
 import { Context } from "@/components/StateProvider"
 import { E_GameActionType } from "@/reducers/games"
 import { E_NotificationActionType } from "@/reducers/notifications"
@@ -21,8 +19,6 @@ import { E_TransactionActionType } from "@/reducers/transaction"
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as Address
 
 const GamesPage = () => {
-  const { isConnected } = useAccount()
-  const [_isConnected, _setIsConnected] = useState(false)
   const [{ games }, dispatch] = useContext(Context)
   const provider = useProvider()
 
@@ -31,6 +27,16 @@ const GamesPage = () => {
 
     contract.on('GameCreated', async (gameId: BigNumber, player: Address) => {
       console.log('Contract GameCreated', gameId.toNumber(), player);
+
+      dispatch({
+        type: E_GameActionType.AddGame,
+        payload: {
+          id: gameId.toNumber(),
+          player1: player,
+          player2: ethers.constants.AddressZero,
+          state: E_Game_State.WaitingForPlayer
+        }
+      })
 
       const notificationId = 'GameCreated'
         .concat('-')
@@ -44,6 +50,10 @@ const GamesPage = () => {
         }
       })
     })
+
+    return () => {
+      contract.removeAllListeners();
+    }
 
   }, [provider, dispatch])
 
@@ -112,24 +122,9 @@ const GamesPage = () => {
     }
   }, [dispatch, createGameData])
 
-  useEffect(() => {
-    if (isConnected)
-      _setIsConnected(true)
-    else
-      _setIsConnected(false)
-  }, [
-    isConnected
-  ])
-
   const handleCreateGame = () => {
     console.log('handleCreateGame')
     createGameWrite?.()
-  }
-
-  if (!_isConnected) {
-    return <Alert variant="info">
-      Connect your wallet to play!
-    </Alert>
   }
 
   return <div>
