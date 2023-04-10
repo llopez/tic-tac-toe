@@ -82,7 +82,7 @@ const GamesPage = () => {
     address: CONTRACT_ADDRESS,
     functionName: 'createGame',
     abi: TicTacToe.abi,
-    args: []
+    args: [ethers.utils.parseEther('1.5')]
   })
 
   useEffect(() => {
