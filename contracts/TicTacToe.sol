@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.17;
 
+import "./Vault.sol";
+
 contract TicTacToe {
     enum State {
         Waiting,
@@ -17,22 +19,39 @@ contract TicTacToe {
         address player1;
         address player2;
         State state;
+        uint betAmount;
     }
 
     uint public gameCount;
+    Vault vault;
 
     mapping(uint => Game) public games;
     mapping(uint => address[9]) public boards;
 
-    event GameCreated(uint id, address player1);
+    event GameCreated(uint id, address player1, uint betAmount);
     event PlayerJoined(uint id, address player);
     event MoveMade(uint id, address player, uint8 position);
     event GameWon(uint id, address player);
     event GameDraw(uint id);
 
-    function createGame() public returns (uint) {
+    constructor(address _vaultAddress) {
+        vault = Vault(_vaultAddress);
+    }
+
+    function getBoard(uint id) public view returns (address[9] memory) {
+        return boards[id];
+    }
+
+    function createGame(uint _betAmount) public returns (uint) {
+        require(_betAmount > 0, "Bet amount must be greater than 0");
+        require(
+            _betAmount <= vault.getAvailableBalance(msg.sender),
+            "Not enough balance"
+        );
+        vault.lock(msg.sender, _betAmount);
+
         uint id = gameCount++;
-        games[id] = Game(id, msg.sender, address(0), State.Waiting);
+        games[id] = Game(id, msg.sender, address(0), State.Waiting, _betAmount);
         boards[id] = [
             address(0),
             address(0),
@@ -45,15 +64,21 @@ contract TicTacToe {
             address(0)
         ];
 
-        emit GameCreated(id, msg.sender);
+        emit GameCreated(id, msg.sender, _betAmount);
 
         return id;
     }
 
     function joinGame(uint id) public {
+        require(
+            games[id].betAmount <= vault.getAvailableBalance(msg.sender),
+            "Not enough balance"
+        );
         require(games[id].player1 != address(0), "Game does not exist");
         require(games[id].player2 == address(0), "Game is full");
         require(games[id].player1 != msg.sender, "Player already in");
+
+        vault.lock(msg.sender, games[id].betAmount);
 
         games[id].player2 = msg.sender;
         games[id].state = State.Player2Turn;
@@ -89,14 +114,24 @@ contract TicTacToe {
             games[id].state = State.Player1Turn;
         }
         if (checkWin(boards[id])) {
+            vault.unlock(games[id].player1, games[id].betAmount);
+            vault.unlock(games[id].player2, games[id].betAmount);
+
             if (msg.sender == games[id].player1) {
                 games[id].state = State.Player1Won;
+                vault.move(games[id].player2, msg.sender, games[id].betAmount);
             } else {
                 games[id].state = State.Player2Won;
+                vault.move(games[id].player1, msg.sender, games[id].betAmount);
             }
+
             emit GameWon(id, msg.sender);
         } else if (checkDraw(boards[id])) {
             games[id].state = State.Draw;
+
+            vault.unlock(games[id].player1, games[id].betAmount);
+            vault.unlock(games[id].player2, games[id].betAmount);
+
             emit GameDraw(id);
         }
     }
