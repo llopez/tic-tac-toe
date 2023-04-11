@@ -54,8 +54,10 @@ const DepositBox = () => {
       <p>Amount: {amount}</p>
       <input
         type="number"
+        step="0.1"
+        min="0"
         value={amount}
-        onChange={(e) => setAmount(parseInt(e.target.value))}
+        onChange={(e) => { if (e.target.value) setAmount(parseFloat(e.target.value)) }}
       />
 
       {
