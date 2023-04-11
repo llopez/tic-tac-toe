@@ -3,12 +3,13 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Button, Image } from 'react-bootstrap';
-
-import { useAccount, useConnect, useDisconnect, useBalance, Address } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useBalance, Address, useContractRead } from "wagmi";
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { useState, useEffect } from 'react';
 import { truncateEthAddress } from '@/lib/utils';
 import { NetworkSelector } from './NetwokSelector';
+import Tic from '@/abis/Tic.json'
+import { BigNumber, ethers } from 'ethers';
 
 interface TitleProps {
   address: Address
@@ -32,6 +33,13 @@ const Navigation = () => {
   const { connect } = useConnect({ connector: new MetaMaskConnector() })
   const { disconnect } = useDisconnect()
 
+  const { data: ticBalance }: { data: BigNumber | undefined } = useContractRead({
+    address: process.env.NEXT_PUBLIC_TIC_ADDRESS as Address,
+    abi: Tic.abi,
+    functionName: 'balanceOf',
+    args: [address],
+  })
+
   useEffect(() => {
     if (isConnected)
       _setIsConnected(true)
@@ -49,8 +57,7 @@ const Navigation = () => {
         <Navbar.Collapse id="basic-navbar-nav" className='justify-content-end'>
           <Nav>
             <Nav.Link href="/games">Games</Nav.Link>
-            <Nav.Link href="/about">About</Nav.Link>
-
+            <Nav.Link href="/vault">Vault</Nav.Link>
             {
               !_isConnected && <Button onClick={() => connect()} size="sm" variant='success'>Connect Wallet</Button>
             }
@@ -58,7 +65,7 @@ const Navigation = () => {
             {
               _isConnected && <NavDropdown title={address && <Title address={address} />} id="basic-nav-dropdown" align="end">
                 <NavDropdown.Item disabled>{balance?.formatted} {balance?.symbol}</NavDropdown.Item>
-                <NavDropdown.Item disabled>10 TIC</NavDropdown.Item>
+                <NavDropdown.Item disabled>{ticBalance ? ethers.utils.formatEther(ticBalance) : '0'} TIC</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={() => { disconnect() }}>
                   Disconnect
