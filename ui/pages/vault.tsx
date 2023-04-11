@@ -2,6 +2,7 @@ import { Address, useAccount, useContractRead } from "wagmi";
 
 import VaultABI from '@/abis/Vault.json';
 import { BigNumber, ethers } from "ethers";
+import DepositBox from "@/components/DepositBox";
 
 const Vault = () => {
 
@@ -56,7 +57,7 @@ const Vault = () => {
       </div>
       <div className="row">
         <div className="col">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Harum veniam corrupti, saepe inventore hic obcaecati aut amet perferendis nemo quam blanditiis vero quod officia incidunt. Suscipit odit deserunt iure quam!
+          <DepositBox />
         </div>
       </div>
     </div>
