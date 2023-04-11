@@ -3,6 +3,7 @@ import { Address, useContractRead, useAccount } from "wagmi"
 import { prepareWriteContract, writeContract } from "@wagmi/core"
 
 import TicABI from '@/abis/Tic.json'
+import VaultABI from '@/abis/Vault.json'
 import { BigNumber, ethers } from "ethers"
 
 const DepositBox = () => {
@@ -18,8 +19,18 @@ const DepositBox = () => {
 
   useEffect(() => { console.log("allowance", allowance?.toString()) }, [allowance])
 
-  const handleDeposit = () => {
-    console.log("Deposit: ", amount)
+  const handleDeposit = async () => {
+    const config = await prepareWriteContract({
+      address: process.env.NEXT_PUBLIC_VAULT_ADDRESS as Address,
+      abi: VaultABI.abi,
+      functionName: 'deposit',
+      args: [ethers.utils.parseEther(amount.toString())]
+    })
+
+    const { hash } = await writeContract(config)
+
+    console.log("Deposit: ", hash, amount)
+
   }
 
   const handleApprove = async () => {
@@ -32,7 +43,7 @@ const DepositBox = () => {
 
     const { hash } = await writeContract(config)
 
-    console.log("Approve: ", amount)
+    console.log("Approve: ", hash, amount)
   }
 
   const amountInWei = ethers.utils.parseEther(amount.toString())
