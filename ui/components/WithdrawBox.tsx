@@ -35,7 +35,7 @@ const WithdrawBox = () => {
   return (
     <div>
       <h1>Withdraw</h1>
-      <p>Available Balance: {ethers.utils.formatEther(availableBalance)}</p>
+      <p>Available Balance: {availableBalance && ethers.utils.formatEther(availableBalance)}</p>
       <p>Amount: {amount}</p>
       <input
         type="number"
