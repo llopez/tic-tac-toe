@@ -69,7 +69,7 @@ const Page = () => {
                   </InputGroup>
 
                   <Form.Text className="text-muted">
-                    We'll never share your email with anyone else.
+                    some text
                   </Form.Text>
                 </Form.Group>
                 <Button variant="primary" type="submit">
@@ -91,7 +91,7 @@ const Page = () => {
                     <Button>max</Button>
                   </InputGroup>
                   <Form.Text className="text-muted">
-                    We'll never share your email with anyone else.
+                    some text
                   </Form.Text>
                 </Form.Group>
                 <Button variant="primary" type="submit">
