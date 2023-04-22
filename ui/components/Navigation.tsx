@@ -50,16 +50,19 @@ const Navigation = () => {
   ])
 
   return (
-    <Navbar bg="light" expand="lg">
-      <Container>
-        <Navbar.Brand href="/">Tic - Tac - Toe</Navbar.Brand>
+    <Navbar style={{ background: "#2B2D3C", minHeight: '10%' }} >
+      <Container fluid >
+        <Navbar.Brand href="/" className="text-light">
+          <Image src="https://cdn-icons-png.flaticon.com/512/566/566294.png" alt="tic" rounded style={{ width: 40 }} />
+          <span className="ms-2">Tik Tak ToE</span>
+        </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav" className='justify-content-end'>
-          <Nav>
-            <Nav.Link href="/games">Games</Nav.Link>
-            <Nav.Link href="/vault">Vault</Nav.Link>
+          <Nav >
+            <Nav.Link href="/games" className="text-light">Games</Nav.Link>
+            <Nav.Link href="/vault" className="text-light">Vault</Nav.Link>
             {
-              !_isConnected && <Button onClick={() => connect()} size="sm" variant='success'>Connect Wallet</Button>
+              !_isConnected && <Button size="sm" variant='success' className="ms-2" onClick={() => { connect() }}>Connect Wallet</Button>
             }
             {_isConnected && <NetworkSelector />}
             {

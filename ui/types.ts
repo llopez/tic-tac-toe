@@ -15,6 +15,7 @@ export interface I_Game {
   player1: Address;
   player2: Address;
   state: E_Game_State;
+  betAmount: number;
 }
 
 export interface I_Game_Response {
@@ -22,6 +23,7 @@ export interface I_Game_Response {
   player1: Address;
   player2: Address;
   state: number;
+  betAmount: number;
 }
 
 export interface I_Notification {

@@ -15,6 +15,7 @@ import { Context } from "@/components/StateProvider"
 import { E_GameActionType } from "@/reducers/games"
 import { E_NotificationActionType } from "@/reducers/notifications"
 import { E_TransactionActionType } from "@/reducers/transaction"
+import { Button, Col, Form, Row } from "react-bootstrap"
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as Address
 
@@ -25,7 +26,7 @@ const GamesPage = () => {
   useEffect(() => {
     const contract = new ethers.Contract(CONTRACT_ADDRESS, TicTacToe.abi, provider)
 
-    contract.on('GameCreated', async (gameId: BigNumber, player: Address) => {
+    contract.on('GameCreated', async (gameId: BigNumber, player: Address, betAmount: BigNumber) => {
       console.log('Contract GameCreated', gameId.toNumber(), player);
 
       dispatch({
@@ -34,7 +35,8 @@ const GamesPage = () => {
           id: gameId.toNumber(),
           player1: player,
           player2: ethers.constants.AddressZero,
-          state: E_Game_State.WaitingForPlayer
+          state: E_Game_State.WaitingForPlayer,
+          betAmount: parseFloat(ethers.utils.formatEther(betAmount))
         }
       })
 
@@ -102,7 +104,7 @@ const GamesPage = () => {
 
       dispatch({
         type: E_GameActionType.LoadGames,
-        payload: res.map(({ id, player1, player2, state }) => ({ id: id.toNumber(), player1, player2, state }))
+        payload: res.map(({ id, player1, player2, state, betAmount }) => ({ id: id.toNumber(), player1, player2, state, betAmount: parseFloat(ethers.utils.formatEther(betAmount)) }))
       })
 
     })()
@@ -127,14 +129,27 @@ const GamesPage = () => {
     createGameWrite?.()
   }
 
-  return <div>
-    <h1>Games</h1>
-    <div>
-      <button onClick={handleCreateGame}>New Game!</button>
-    </div>
-
-    <List items={games} />
-  </div>
+  return <Row className="justify-content-between">
+    <Col md={2}>
+      <Button variant='dark' onClick={handleCreateGame}>New Game</Button>
+    </Col>
+    <Col md={6} className="text-end">
+      <Button variant='dark'>Waiting</Button>
+      <Button variant='default' className="mx-2">Finished</Button>
+      <Button variant='default'>Playing</Button>
+    </Col>
+    <Col md={4}>
+      <Form.Control
+        type="text"
+        placeholder="type address"
+        aria-label="Input group example"
+        aria-describedby="btnGroupAddon"
+      />
+    </Col>
+    <Col md={12}>
+      <List items={games} />
+    </Col>
+  </Row>
 }
 
 export default GamesPage

@@ -1,21 +1,17 @@
-import { useEffect, useState } from "react"
-import { Address, useContractRead, useAccount } from "wagmi"
+import { useState } from "react"
+import { Address } from "wagmi"
 import { prepareWriteContract, writeContract } from "@wagmi/core"
-
 import VaultABI from '@/abis/Vault.json'
-import { BigNumber, ethers } from "ethers"
+import { ethers } from "ethers"
+import { Button, Card, Form, InputGroup } from "react-bootstrap"
 
-const WithdrawBox = () => {
-  const { address } = useAccount()
+interface WithdrawBoxProps {
+  available: number
+}
+
+const WithdrawBox = (props: WithdrawBoxProps) => {
+  const { available } = props
   const [amount, setAmount] = useState(0)
-
-  const { data: availableBalance }: { data: BigNumber | undefined } = useContractRead({
-    abi: VaultABI.abi,
-    functionName: 'getAvailableBalance',
-    address: process.env.NEXT_PUBLIC_VAULT_ADDRESS as Address,
-    args: [address]
-  })
-
   const handleWithdraw = async () => {
     const config = await prepareWriteContract({
       address: process.env.NEXT_PUBLIC_VAULT_ADDRESS as Address,
@@ -27,27 +23,37 @@ const WithdrawBox = () => {
     const { hash } = await writeContract(config)
 
     console.log("handleWithdraw: ", hash, amount)
-
   }
 
-  const amountInWei = ethers.utils.parseEther(amount.toString())
+  const handleSetMaxAmount = () => {
+    setAmount(available)
+  }
 
   return (
-    <div>
-      <h1>Withdraw</h1>
-      <p>Available Balance: {availableBalance && ethers.utils.formatEther(availableBalance)}</p>
-      <p>Amount: {amount}</p>
-      <input
-        type="number"
-        value={amount}
-        onChange={(e) => setAmount(parseInt(e.target.value))}
-      />
-
-
-      <button onClick={handleWithdraw}>Withdraw</button>
-
-
-    </div>
+    <Card>
+      <Card.Header as="h5">WITHDRAW</Card.Header>
+      <Card.Body>
+        <Form>
+          <Form.Group className="mb-3" controlId="formBasicEmail">
+            <Form.Label>Amount</Form.Label>
+            <InputGroup>
+              <Form.Control
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="Enter amount to withdraw"
+                value={amount}
+                onChange={(e) => setAmount(parseFloat(e.target.value))}
+              />
+              <Button onClick={handleSetMaxAmount}>max</Button>
+            </InputGroup>
+          </Form.Group>
+          <Button variant="primary" onClick={handleWithdraw} disabled={amount > available}>
+            Withdraw
+          </Button>
+        </Form>
+      </Card.Body>
+    </Card>
   )
 }
 

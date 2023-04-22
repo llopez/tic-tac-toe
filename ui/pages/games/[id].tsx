@@ -8,15 +8,14 @@ import {
 } from "wagmi"
 import { readContract, readContracts, writeContract, prepareWriteContract, Address } from "@wagmi/core"
 import TicTacToe from '@/abis/TicTacToe.json'
-import { Button, Card, Badge } from "react-bootstrap"
+import { Button, Badge, Row, Col, Image } from "react-bootstrap"
 import { BigNumber, ethers } from "ethers"
 import { useContext, useEffect, useState } from "react"
-import { Title } from "@/components/Navigation"
-import { CaretLeft, Trophy } from "react-bootstrap-icons"
 import { E_Game_State, E_Transaction_Action, I_Game, I_Game_Response } from "@/types"
 import { Context } from "@/components/StateProvider"
 import { E_NotificationActionType } from "@/reducers/notifications"
 import { E_TransactionActionType } from "@/reducers/transaction"
+import { truncateEthAddress } from "@/lib/utils"
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as Address
 
@@ -133,7 +132,7 @@ const GamePage = () => {
     functionName: 'joinGame',
     abi: TicTacToe.abi,
     args: [id],
-    enabled: game?.state === E_Game_State.WaitingForPlayer
+    // enabled: game?.state === E_Game_State.WaitingForPlayer
   })
 
   const { write: joinGameWrite, data: joinGameData } = useContractWrite(joinGameConfig)
@@ -202,6 +201,7 @@ const GamePage = () => {
   }
 
   const handleJoinGame = () => {
+    console.log('handleJoinGame')
     joinGameWrite?.()
   }
 
@@ -233,39 +233,37 @@ const GamePage = () => {
     return <div>Loading...</div>
   }
 
-  return <div>
-    {
-      game.state === 0 && <Button onClick={handleJoinGame}>Join Game</Button>
-    }
-    <Card className="mt-1 me-1">
-      <Card.Body>
-        <Card.Title>Game {id}</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">
-          <Badge bg="primary">
-            {E_Game_State[game.state]}
-          </Badge>
-        </Card.Subtitle>
-        <Card.Text>
-          <Title address={game.player1} />
-          {game.state === E_Game_State.Player1Turn && <CaretLeft size={24} />}
-          {game.state === E_Game_State.Player1Won && <Trophy size={24} />}
-        </Card.Text>
-        <Card.Text>
-          <Title address={game.player2} />
-          {game.state === E_Game_State.Player2Turn && <CaretLeft size={24} />}
-          {game.state === E_Game_State.Player2Won && <Trophy size={24} />}
-        </Card.Text>
-        <Card.Body>
-          <Board
-            data={board}
-            onSelected={handleBoardChange}
-            player1={game.player1}
-            player2={game.player2}
-          />
-        </Card.Body>
-      </Card.Body>
-    </Card>
-  </div>
+  const isPlayer1Turn = game.state === E_Game_State.Player1Turn
+  const isPlayer2Turn = !isPlayer1Turn
+
+  return <Row className="justify-content-center m-0 p-0">
+    <Col md={4} className="d-flex justify-content-end align-items-center border border-end-0 rounded-start">
+      <span className={`p-2 fs-4 ${isPlayer1Turn && 'text-decoration-underline'}`}>{game.player1 && truncateEthAddress(game.player1)}</span>
+      <Image src={`https://effigy.im/a/${game.player1}.png`} alt="avatar" rounded style={{ width: 40 }} />
+    </Col>
+    <Col md={4} className='text-center text-uppercase border-top border-bottom'>
+      <Col md={12}>
+        <Badge bg="primary">
+          {E_Game_State[game.state]}
+        </Badge>
+      </Col>
+      <Col md={12}>{ethers.utils.formatEther(game.betAmount)} TIC</Col>
+    </Col>
+    <Col md={4} className="d-flex justify-content-start align-items-center border border-start-0 rounded-end">
+      {game.state !== E_Game_State.WaitingForPlayer && <Image src={`https://effigy.im/a/${game.player2}.png`} alt="avatar" rounded style={{ width: 40 }} />}
+      {game.state !== E_Game_State.WaitingForPlayer && <span className={`p-2 fs-4 ${isPlayer2Turn && 'text-decoration-underline'}`}>{game.player2 && truncateEthAddress(game.player2)}</span>}
+      {game.state === E_Game_State.WaitingForPlayer && <Button variant="dark" onClick={handleJoinGame}>Join</Button>}
+    </Col>
+    <Col md={12} className="mt-4 justify-content-center d-flex">
+      <Board
+        data={board}
+        onSelected={handleBoardChange}
+        player1={game.player1}
+        player2={game.player2}
+      />
+    </Col>
+  </Row>
+
 }
 
 export default GamePage

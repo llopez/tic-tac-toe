@@ -1,7 +1,14 @@
 import React from "react"
 import { NavDropdown } from "react-bootstrap"
 import { useNetwork, useSwitchNetwork, Chain } from "wagmi"
-import { availableChains } from "./Layout"
+import { goerli, hardhat } from 'wagmi/chains'
+
+const environmentChains: { [key: string]: Chain[] } = {
+  development: [goerli, hardhat],
+  production: [goerli]
+}
+
+export const availableChains = environmentChains[process.env.NODE_ENV]
 
 interface Item {
   data: Chain

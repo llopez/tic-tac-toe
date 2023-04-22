@@ -1,43 +1,86 @@
-import { E_Game_State, I_Game } from "@/types"
-import { Card, Badge } from "react-bootstrap"
-import { Title } from "./Navigation"
+import { Row, Col, Badge, Pagination } from 'react-bootstrap'
+import { Title } from './Navigation'
+import Link from 'next/link'
+import { E_Game_State } from '@/types'
+import { I_Game } from '@/types'
 
 interface ListProps {
   items: I_Game[]
 }
 
 interface ItemProps {
-  item: I_Game
+  data: I_Game
 }
 
 const Item = (props: ItemProps) => {
-  const { item } = props
-  const { id, state } = item
+  const { data } = props
+  const { id, state, player1, player2, betAmount } = data
 
-  return <Card className="mt-1 me-1 col-md-3">
-    <Card.Body>
-      <Card.Title>Game {id}</Card.Title>
-      <Card.Subtitle className="mb-2 text-muted">
-        <Badge bg="primary">
-          {E_Game_State[state]}
-        </Badge>
-      </Card.Subtitle>
-      <Card.Text><Title address={item.player1} /></Card.Text>
-      <Card.Text><Title address={item.player2} /></Card.Text>
-      <Card.Link href={`/games/${id}`}>Go to game</Card.Link>
-    </Card.Body>
-  </Card>
+  return (
+    <Row className="border-bottom">
+      <Col md={1} className="py-3">{id}</Col>
+      <Col md={2} className="py-3"><Badge className="text-uppercase">{E_Game_State[state]}</Badge></Col>
+      <Col md={1} className="py-3">{betAmount.toString()}</Col>
+      <Col md={3} className="py-3">
+        <Title address={player1} />
+      </Col>
+      <Col md={3} className="py-3"><Title address={player2} /></Col>
+      <Col md={2} className="py-3">
+        <Link href={`/games/${id}`} className="btn">Join</Link>
+        <Link href={`/games/${id}`} className="btn">Watch</Link>
+      </Col>
+    </Row>
+  )
 }
 
 const List = (props: ListProps) => {
   const { items } = props
 
   return (
-    <div className="d-flex flex-wrap justify-content-center">
-      {
-        items.map((item) => <Item key={item.id} item={item} />)
-      }
-    </div>
+    <Row className="mx-2 mt-4">
+      <Col>
+        <Row>
+          <Col>
+            <Row className="border-bottom">
+              <Col md={1} className="py-1 fw-light">Id</Col>
+              <Col md={2} className="py-1 fw-light">State</Col>
+              <Col md={1} className="py-1 fw-light">Bet</Col>
+              <Col md={3} className="py-1 fw-light">Player 1</Col>
+              <Col md={3} className="py-1 fw-light">Player 2</Col>
+              <Col md={2} className="py-1"></Col>
+            </Row>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            {
+              items.map(item => <Item key={item.id} data={item} />)
+            }
+          </Col>
+        </Row>
+        <Row className="mt-4">
+          <Col md={12} className="justify-content-center d-flex">
+            <Pagination>
+              <Pagination.First />
+              <Pagination.Prev />
+              <Pagination.Item>{1}</Pagination.Item>
+              <Pagination.Ellipsis />
+
+              <Pagination.Item>{10}</Pagination.Item>
+              <Pagination.Item>{11}</Pagination.Item>
+              <Pagination.Item active>{12}</Pagination.Item>
+              <Pagination.Item>{13}</Pagination.Item>
+              <Pagination.Item disabled>{14}</Pagination.Item>
+
+              <Pagination.Ellipsis />
+              <Pagination.Item>{20}</Pagination.Item>
+              <Pagination.Next />
+              <Pagination.Last />
+            </Pagination>
+          </Col>
+        </Row>
+      </Col>
+    </Row>
   )
 }
 
