@@ -23,7 +23,10 @@ describe("Vault", () => {
 
       await tic.connect(owner).mint(owner.address, mintAmount);
       await tic.connect(owner).approve(vault.address, amount);
-      await vault.connect(owner).deposit(amount);
+
+      await expect(vault.connect(owner).deposit(amount))
+        .to.emit(vault, "Deposit")
+        .withArgs(amount, owner.address);
 
       expect(await vault.balanceOf(owner.address)).to.equal(amount);
       expect(await tic.balanceOf(owner.address)).to.equal(
@@ -43,7 +46,9 @@ describe("Vault", () => {
       await tic.connect(otherAccount).approve(vault.address, amount);
       await vault.connect(otherAccount).deposit(amount);
 
-      await vault.connect(otherAccount).withdraw(withdrawAmount);
+      await expect(vault.connect(otherAccount).withdraw(withdrawAmount))
+        .to.emit(vault, "Withdraw")
+        .withArgs(withdrawAmount, otherAccount.address);
 
       expect(await vault.balanceOf(otherAccount.address)).to.equal(
         amount.sub(withdrawAmount)

@@ -11,6 +11,9 @@ contract Vault {
     mapping(address => uint) public lockedBalanceOf;
     uint public totalBalance;
 
+    event Deposit(uint amount, address user);
+    event Withdraw(uint amount, address user);
+
     constructor(address _tokenAddress) {
         token = IERC20(_tokenAddress);
     }
@@ -50,6 +53,8 @@ contract Vault {
 
         balanceOf[msg.sender] += _amount;
         totalBalance += _amount;
+
+        emit Deposit(_amount, msg.sender);
     }
 
     function withdraw(uint _amount) public {
@@ -59,5 +64,7 @@ contract Vault {
 
         balanceOf[msg.sender] -= _amount;
         totalBalance -= _amount;
+
+        emit Withdraw(_amount, msg.sender);
     }
 }
