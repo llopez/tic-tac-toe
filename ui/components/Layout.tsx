@@ -1,57 +1,20 @@
-import React, { useEffect, useState } from "react"
-import { Container, Alert, Row, Col } from "react-bootstrap"
-import { Chain, useNetwork, useAccount } from "wagmi";
-import { goerli, hardhat } from 'wagmi/chains'
+import Head from "next/head";
+import React from "react"
+import { Container, Row, Col } from "react-bootstrap"
 import Navigation from "./Navigation";
 import Notifications from "./Notifications";
 import Transaction from "./Transaction";
 
-// const environmentChains: { [key: string]: Chain[] } = {
-//   development: [goerli, hardhat],
-//   production: [goerli]
-// }
-
-// export const availableChains = environmentChains[process.env.NODE_ENV]
-
 const Layout = (props: React.PropsWithChildren) => {
   const { children } = props
-  // const { isConnected } = useAccount()
-  // const [_isConnected, _setIsConnected] = useState(false)
-  // const { chain } = useNetwork()
-  // const [networkSupported, setNetworkSupported] = useState(false)
-
-  // useEffect(() => {
-  //   if (isConnected)
-  //     _setIsConnected(true)
-  //   else
-  //     _setIsConnected(false)
-  // }, [
-  //   isConnected
-  // ])
-
-  // useEffect(() => {
-  //   const isSupportedNetwork = chain && availableChains.map(c => c.id).includes(chain.id)
-
-  //   setNetworkSupported(!!isSupportedNetwork)
-  // }, [chain])
-
-  // return <Container fluid>
-  //   <Navigation />
-  //   <Notifications />
-  //   <Transaction />
-  //   <Container className="mt-2">
-  //     {/* {!_isConnected && <Alert variant="info">
-  //       Connect your wallet to play!
-  //     </Alert>}
-  //     {_isConnected && !networkSupported && <Alert variant="info">
-  //       Network not supported, please change to goerli
-  //     </Alert>}
-  //     {_isConnected && networkSupported && children} */}
-  //     {children}
-  //   </Container>
-  // </Container>
 
   return <Container fluid style={{ background: "rgb(241, 241, 243)" }} className="vh-100 p-0">
+    <Head>
+      <title>Tik Tak ToE</title>
+      <meta name="description" content="Tik Tak ToE Blockchain Game" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link rel="icon" href="/favicon.ico" />
+    </Head>
     <Navigation />
     <Notifications />
     <Transaction />
