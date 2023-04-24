@@ -1,4 +1,4 @@
-import { Row, Col, Badge, Pagination } from 'react-bootstrap'
+import { Row, Col, Badge, Button } from 'react-bootstrap'
 import { Title } from './Navigation'
 import Link from 'next/link'
 import { E_Game_State } from '@/types'
@@ -26,8 +26,7 @@ const Item = (props: ItemProps) => {
       </Col>
       <Col md={3} className="py-3"><Title address={player2} /></Col>
       <Col md={2} className="py-3">
-        <Link href={`/games/${id}`} className="btn">Join</Link>
-        <Link href={`/games/${id}`} className="btn">Watch</Link>
+        <Link href={`/games/${id}`} className="btn">Join / Watch</Link>
       </Col>
     </Row>
   )
@@ -60,23 +59,7 @@ const List = (props: ListProps) => {
         </Row>
         <Row className="mt-4">
           <Col md={12} className="justify-content-center d-flex">
-            <Pagination>
-              <Pagination.First />
-              <Pagination.Prev />
-              <Pagination.Item>{1}</Pagination.Item>
-              <Pagination.Ellipsis />
-
-              <Pagination.Item>{10}</Pagination.Item>
-              <Pagination.Item>{11}</Pagination.Item>
-              <Pagination.Item active>{12}</Pagination.Item>
-              <Pagination.Item>{13}</Pagination.Item>
-              <Pagination.Item disabled>{14}</Pagination.Item>
-
-              <Pagination.Ellipsis />
-              <Pagination.Item>{20}</Pagination.Item>
-              <Pagination.Next />
-              <Pagination.Last />
-            </Pagination>
+            <Button>Load more</Button>
           </Col>
         </Row>
       </Col>

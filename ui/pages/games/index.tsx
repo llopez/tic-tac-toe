@@ -1,21 +1,19 @@
 import { useContext, useEffect } from "react"
 import {
-  usePrepareContractWrite,
-  useContractWrite, useContractRead,
+  useContractRead,
   readContracts,
   Address,
   useProvider,
 } from "wagmi"
-
 import TicTacToe from '@/abis/TicTacToe.json'
 import { BigNumber, ethers } from "ethers"
 import List from "@/components/List"
-import { E_Game_State, E_Transaction_Action, I_Game_Response } from "@/types"
+import { E_Game_State, I_Game_Response } from "@/types"
 import { Context } from "@/components/StateProvider"
 import { E_GameActionType } from "@/reducers/games"
 import { E_NotificationActionType } from "@/reducers/notifications"
-import { E_TransactionActionType } from "@/reducers/transaction"
 import { Button, Col, Form, Row } from "react-bootstrap"
+import NewGame from "@/components/NewGame"
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as Address
 
@@ -78,15 +76,6 @@ const GamesPage = () => {
     functionName: 'gameCount',
   })
 
-  useEffect(() => { console.log('gameCount', gameCount?.toNumber()) }, [gameCount])
-
-  const { config } = usePrepareContractWrite({
-    address: CONTRACT_ADDRESS,
-    functionName: 'createGame',
-    abi: TicTacToe.abi,
-    args: [ethers.utils.parseEther('1.5')]
-  })
-
   useEffect(() => {
     (async () => {
       const count = Array(gameCount?.toNumber()).keys()
@@ -110,28 +99,9 @@ const GamesPage = () => {
     })()
   }, [gameCount, dispatch])
 
-  const { write: createGameWrite, data: createGameData } = useContractWrite(config)
-
-  useEffect(() => {
-    if (createGameData) {
-      dispatch({
-        type: E_TransactionActionType.AddTransaction,
-        payload: {
-          hash: createGameData.hash,
-          action: E_Transaction_Action.CreateGame,
-        }
-      })
-    }
-  }, [dispatch, createGameData])
-
-  const handleCreateGame = () => {
-    console.log('handleCreateGame')
-    createGameWrite?.()
-  }
-
   return <Row className="justify-content-between">
     <Col md={2}>
-      <Button variant='dark' onClick={handleCreateGame}>New Game</Button>
+      <NewGame />
     </Col>
     <Col md={6} className="text-end">
       <Button variant='dark'>Waiting</Button>
