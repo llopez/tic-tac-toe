@@ -1,7 +1,6 @@
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Button, Image } from 'react-bootstrap';
 import { useAccount, useConnect, useDisconnect, useBalance, Address, useContractRead } from "wagmi";
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
@@ -23,6 +22,44 @@ export const Title = (props: TitleProps) => {
       <Image src={`https://effigy.im/a/${address}.png`} alt="avatar" rounded style={{ width: 24 }} />
       <span className='p-2'>{address && truncateEthAddress(address)}</span>
     </>
+  )
+}
+
+interface AccountSelectorProps {
+  address: Address
+  balance: any
+  tokens: BigNumber | undefined
+  onDisconnect: () => void
+}
+
+const AccountSelector = (props: AccountSelectorProps) => {
+  const { address, balance, tokens, onDisconnect } = props
+  const [show, setShow] = useState(false)
+
+  const handleOpen = () => {
+    setShow(true)
+  }
+
+  const handleClose = () => {
+    setShow(false)
+  }
+
+  return (
+    <div className="nav-item dropdown" style={{ color: 'white' }}>
+      <a id="basic-nav-dropdown" aria-expanded="false" role="button" className="dropdown-toggle nav-link text-light" href="#" onClick={handleOpen}>
+        <Title address={address} />
+      </a>
+      <div aria-labelledby="basic-nav-dropdown" data-bs-popper="static" className={`${show ? 'show' : ''} dropdown-menu dropdown-menu-end`} onMouseLeave={handleClose}>
+        <a data-rr-ui-dropdown-item="" className="dropdown-item disabled" role="button" href="#">{balance?.formatted} {balance?.symbol}</a>
+        <a data-rr-ui-dropdown-item="" className="dropdown-item disabled" role="button" href="#">
+          {tokens ? ethers.utils.formatEther(tokens) : '0'} TIC
+        </a>
+        <hr className="dropdown-divider" role="separator" />
+        <a data-rr-ui-dropdown-item="" className="dropdown-item" role="button" href="#" onClick={onDisconnect}>
+          Disconnect
+        </a>
+      </div>
+    </div>
   )
 }
 
@@ -66,14 +103,7 @@ const Navigation = () => {
             }
             {_isConnected && <NetworkSelector />}
             {
-              _isConnected && <NavDropdown title={address && <Title address={address} />} id="basic-nav-dropdown" align="end">
-                <NavDropdown.Item disabled>{balance?.formatted} {balance?.symbol}</NavDropdown.Item>
-                <NavDropdown.Item disabled>{ticBalance ? ethers.utils.formatEther(ticBalance) : '0'} TIC</NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item onClick={() => { disconnect() }}>
-                  Disconnect
-                </NavDropdown.Item>
-              </NavDropdown>
+              _isConnected && address && <AccountSelector address={address} balance={balance} tokens={ticBalance} onDisconnect={() => { disconnect() }} />
             }
           </Nav>
         </Navbar.Collapse>

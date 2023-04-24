@@ -30,17 +30,32 @@ const Item = (props: React.PropsWithChildren<Item>) => {
 }
 
 export const NetworkSelector = () => {
+  const [show, setShow] = React.useState(false)
   const { chain } = useNetwork()
   const { switchNetwork } = useSwitchNetwork()
+
+  const handleOpen = () => {
+    setShow(true)
+  }
+
+  const handleClose = () => {
+    setShow(false)
+  }
 
   const handleChange = (id: number) => {
     switchNetwork?.(id)
   }
 
   return (
-    <NavDropdown title={chain?.name} id="basic-nav-dropdown" align='end'>
-      {availableChains.map(c => <Item key={c.id} data={c} onSelect={handleChange}>{c.name}</Item>)}
-    </NavDropdown>
+    <div className="nav-item dropdown">
+      <a id="basic-nav-dropdown" aria-expanded="false" role="button" className="dropdown-toggle nav-link text-light" href="#" onClick={handleOpen}>
+        {chain?.name}
+      </a>
+      <div aria-labelledby="basic-nav-dropdown" data-bs-popper="static" className={`${show ? 'show' : ''} dropdown-menu dropdown-menu-end`} onMouseLeave={handleClose}>
+        {availableChains.map(c => <Item key={c.id} data={c} onSelect={handleChange}>{c.name}</Item>)}
+      </div>
+    </div>
+
   )
 }
 
