@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Address, useContractRead, useAccount } from "wagmi"
+import { useEffect, useState } from "react"
+import { Address, useContractRead, useAccount, useProvider } from "wagmi"
 import { prepareWriteContract, writeContract } from "@wagmi/core"
 import TicABI from '@/abis/Tic.json'
 import VaultABI from '@/abis/Vault.json'
@@ -10,12 +10,30 @@ interface DepositBoxProps {
   balance: number
 }
 
+const TIC_ADDRESS = process.env.NEXT_PUBLIC_TIC_ADDRESS as Address
+
 const DepositBox = (props: DepositBoxProps) => {
   const { balance } = props
 
   const { address } = useAccount()
+  const provider = useProvider()
   const [amount, setAmount] = useState(0)
   const [allowance, setAllowance] = useState<number>(0)
+
+  useEffect(() => {
+    const contract = new ethers.Contract(TIC_ADDRESS, TicABI.abi, provider)
+
+    contract.on('Approval', async (owner: Address, spender: Address, _amount: BigNumber) => {
+      const amount = ethers.utils.formatEther(_amount)
+
+      console.log('Approval', owner, spender, amount);
+
+      setAllowance(parseFloat(amount))
+    })
+
+    return () => { contract.removeAllListeners() }
+
+  }, [provider])
 
   useContractRead({
     abi: TicABI.abi,

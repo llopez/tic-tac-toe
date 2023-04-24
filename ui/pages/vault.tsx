@@ -1,9 +1,9 @@
-import { Address, useAccount, useContractRead } from "wagmi";
+import { Address, useAccount, useContractRead, useProvider } from "wagmi";
 import VaultABI from '@/abis/Vault.json';
 import { BigNumber, ethers } from "ethers";
 import DepositBox from "@/components/DepositBox";
 import WithdrawBox from "@/components/WithdrawBox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Container, Row, Col, Card, ProgressBar } from "react-bootstrap";
 import TicABI from '@/abis/Tic.json'
 
@@ -20,12 +20,43 @@ const Item = (props: ItemProps) => <Card style={props.style}>
   </Card.Body>
 </Card>
 
+const VAULT_ADDRESS = process.env.NEXT_PUBLIC_VAULT_ADDRESS as Address
+
 const Vault = () => {
   const { address } = useAccount()
+  const provider = useProvider()
   const [balance, setBalance] = useState<number>(0)
   const [deposited, setDeposited] = useState<number>(0)
   const [locked, setLocked] = useState<number>(0)
-  const [available, setAvailable] = useState<number>(0)
+
+  useEffect(() => {
+    const contract = new ethers.Contract(VAULT_ADDRESS, VaultABI.abi, provider)
+
+    contract.on('Deposit', async (_amount: BigNumber, player: Address) => {
+      const amount = ethers.utils.formatEther(_amount)
+
+      console.log('Contract deposit', player, amount);
+      setDeposited((prev) => prev + parseFloat(amount))
+    })
+
+    return () => { contract.removeAllListeners() }
+  }, [provider])
+
+  useEffect(() => {
+    const contract = new ethers.Contract(VAULT_ADDRESS, VaultABI.abi, provider)
+
+    contract.on('Withdraw', async (_amount: BigNumber, user: Address) => {
+      const amount = ethers.utils.formatEther(_amount)
+
+      console.log('Withdraw', amount);
+
+      setDeposited((prev) => prev - parseFloat(amount))
+      setBalance((prev) => prev + parseFloat(amount))
+    })
+
+    return () => { contract.removeAllListeners() }
+
+  }, [provider])
 
   useContractRead({
     address: process.env.NEXT_PUBLIC_TIC_ADDRESS as Address,
@@ -57,17 +88,8 @@ const Vault = () => {
     }
   })
 
-  useContractRead({
-    address: process.env.NEXT_PUBLIC_VAULT_ADDRESS as Address,
-    abi: VaultABI.abi,
-    functionName: 'getAvailableBalance',
-    args: [address],
-    onSuccess(data: BigNumber) {
-      setAvailable(parseFloat(ethers.utils.formatEther(data)))
-    }
-  })
-
   const total = balance + deposited
+  const available = deposited - locked
 
   return (
     <Container>
