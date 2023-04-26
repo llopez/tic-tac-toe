@@ -36,6 +36,9 @@ export enum E_Transaction_Action {
   CreateGame = 0,
   JoinGame = 1,
   MakeMove = 2,
+  ApproveDeposit = 3,
+  Deposit = 4,
+  Withdraw = 5,
 }
 
 export interface I_Transaction {

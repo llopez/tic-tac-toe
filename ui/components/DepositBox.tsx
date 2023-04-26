@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Address, useContractRead, useAccount, useProvider } from "wagmi"
 import { prepareWriteContract, writeContract } from "@wagmi/core"
 import TicABI from '@/abis/Tic.json'
 import VaultABI from '@/abis/Vault.json'
 import { BigNumber, ethers } from "ethers"
 import { Button, Card, Form, InputGroup } from "react-bootstrap"
+import { Context } from "./StateProvider"
+import { E_TransactionActionType } from "@/reducers/transaction"
+import { E_Transaction_Action } from "@/types"
 
 interface DepositBoxProps {
   balance: number
@@ -17,8 +20,11 @@ const DepositBox = (props: DepositBoxProps) => {
 
   const { address } = useAccount()
   const provider = useProvider()
-  const [amount, setAmount] = useState(0)
+  const [amount, setAmount] = useState<string>('')
   const [allowance, setAllowance] = useState<number>(0)
+  const [, dispatch] = useContext(Context)
+
+  const defaultAmount = amount.length > 0 ? parseFloat(amount) : 0
 
   useEffect(() => {
     const contract = new ethers.Contract(TIC_ADDRESS, TicABI.abi, provider)
@@ -50,10 +56,21 @@ const DepositBox = (props: DepositBoxProps) => {
       address: process.env.NEXT_PUBLIC_VAULT_ADDRESS as Address,
       abi: VaultABI.abi,
       functionName: 'deposit',
-      args: [ethers.utils.parseEther(amount.toString())],
+      args: [ethers.utils.parseEther(defaultAmount.toString())],
 
     })
     const { hash } = await writeContract(config)
+
+    dispatch({
+      type: E_TransactionActionType.AddTransaction,
+      payload: {
+        hash,
+        action: E_Transaction_Action.Deposit
+      }
+    })
+
+    setAmount('')
+
     console.log("Deposit: ", hash, amount)
   }
 
@@ -62,17 +79,25 @@ const DepositBox = (props: DepositBoxProps) => {
       address: process.env.NEXT_PUBLIC_TIC_ADDRESS as Address,
       abi: TicABI.abi,
       functionName: 'approve',
-      args: [process.env.NEXT_PUBLIC_VAULT_ADDRESS, ethers.utils.parseEther(amount.toString())],
+      args: [process.env.NEXT_PUBLIC_VAULT_ADDRESS, ethers.utils.parseEther(defaultAmount.toString())],
 
     })
 
     const { hash } = await writeContract(config)
 
+    dispatch({
+      type: E_TransactionActionType.AddTransaction,
+      payload: {
+        hash,
+        action: E_Transaction_Action.ApproveDeposit
+      }
+    })
+
     console.log("Approve: ", hash, amount)
   }
 
   const handleSetMaxAmount = () => {
-    setAmount(balance)
+    setAmount(balance.toString())
   }
 
   return (
@@ -90,18 +115,18 @@ const DepositBox = (props: DepositBoxProps) => {
                 max={balance}
                 placeholder="Enter amount to deposit"
                 value={amount}
-                onChange={(e) => { if (e.target.value) setAmount(parseFloat(e.target.value)) }}
+                onChange={(e) => { setAmount(e.target.value) }}
               />
               <Button onClick={handleSetMaxAmount}>max</Button>
             </InputGroup>
           </Form.Group>
           {
-            allowance >= amount && <Button variant="primary" onClick={handleDeposit}>
+            allowance >= defaultAmount && <Button variant="primary" onClick={handleDeposit} disabled={amount === ''}>
               Deposit
             </Button>
           }
           {
-            allowance < amount && <Button variant="success" onClick={handleApprove}>
+            allowance < defaultAmount && <Button variant="success" onClick={handleApprove}>
               Approve
             </Button>
           }

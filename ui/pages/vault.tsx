@@ -32,7 +32,7 @@ const Vault = () => {
   useEffect(() => {
     const contract = new ethers.Contract(VAULT_ADDRESS, VaultABI.abi, provider)
 
-    contract.on('Deposit', async (_amount: BigNumber, player: Address) => { 
+    contract.on('Deposit', async (_amount: BigNumber, player: Address) => {
       const amount = ethers.utils.formatEther(_amount)
 
       console.log('Contract deposit', player, amount);
