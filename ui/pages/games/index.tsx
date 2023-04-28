@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useState } from "react"
 import {
   useContractRead,
   readContracts,
@@ -8,7 +8,7 @@ import {
 import TicTacToe from '@/abis/TicTacToe.json'
 import { BigNumber, ethers } from "ethers"
 import List from "@/components/List"
-import { E_Game_State, I_Game_Response } from "@/types"
+import { E_Game_State, I_Game, I_Game_Response } from "@/types"
 import { Context } from "@/components/StateProvider"
 import { E_GameActionType } from "@/reducers/games"
 import { E_NotificationActionType } from "@/reducers/notifications"
@@ -17,9 +17,22 @@ import NewGame from "@/components/NewGame"
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as Address
 
+enum Filter {
+  ALL = 'ALL',
+  WAITING = 'WAITING',
+  PLAYING = 'PLAYING',
+  FINISHED = 'FINISHED',
+}
+
 const GamesPage = () => {
   const [{ games }, dispatch] = useContext(Context)
+  const [filteredGames, setFilteredGames] = useState<I_Game[]>([])
+  const [filter, setFilter] = useState<Filter>(Filter.ALL)
   const provider = useProvider()
+
+  useEffect(() => {
+    setFilteredGames(games)
+  }, [games])
 
   useEffect(() => {
     const contract = new ethers.Contract(CONTRACT_ADDRESS, TicTacToe.abi, provider)
@@ -99,14 +112,35 @@ const GamesPage = () => {
     })()
   }, [gameCount, dispatch])
 
+  const handleFilterWaiting = () => {
+    setFilteredGames(games.filter((game) => game.state === E_Game_State.WaitingForPlayer))
+    setFilter(Filter.WAITING)
+  }
+
+  const handleFilterFinished = () => {
+    setFilteredGames(games.filter((game) => [E_Game_State.Player1Won, E_Game_State.Player2Turn, E_Game_State.Draw].includes(game.state)))
+    setFilter(Filter.FINISHED)
+  }
+
+  const handleFilterPlaying = () => {
+    setFilteredGames(games.filter((game) => [E_Game_State.Player1Turn, E_Game_State.Player2Turn].includes(game.state)))
+    setFilter(Filter.PLAYING)
+  }
+
+  const handleResetFilter = () => {
+    setFilteredGames(games)
+    setFilter(Filter.ALL)
+  }
+
   return <Row className="justify-content-between">
     <Col md={2}>
       <NewGame />
     </Col>
     <Col md={6} className="text-end">
-      <Button variant='dark'>Waiting</Button>
-      <Button variant='default' className="mx-2">Finished</Button>
-      <Button variant='default'>Playing</Button>
+      <Button variant='' active={filter === Filter.ALL} onClick={handleResetFilter}>ALL</Button>
+      <Button variant='' active={filter === Filter.WAITING} onClick={handleFilterWaiting} className="ms-1">Waiting</Button>
+      <Button variant='' active={filter === Filter.FINISHED} onClick={handleFilterFinished} className="ms-1">Finished</Button>
+      <Button variant='' active={filter === Filter.PLAYING} onClick={handleFilterPlaying} className="ms-1">Playing</Button>
     </Col>
     <Col md={4}>
       <Form.Control
@@ -117,7 +151,7 @@ const GamesPage = () => {
       />
     </Col>
     <Col md={12}>
-      <List items={games} />
+      <List items={filteredGames} />
     </Col>
   </Row>
 }
