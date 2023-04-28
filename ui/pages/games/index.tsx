@@ -28,6 +28,7 @@ const GamesPage = () => {
   const [{ games }, dispatch] = useContext(Context)
   const [filteredGames, setFilteredGames] = useState<I_Game[]>([])
   const [filter, setFilter] = useState<Filter>(Filter.ALL)
+  const [addressFilter, setAddressFilter] = useState<string>('')
   const provider = useProvider()
 
   useEffect(() => {
@@ -115,20 +116,29 @@ const GamesPage = () => {
   const handleFilterWaiting = () => {
     setFilteredGames(games.filter((game) => game.state === E_Game_State.WaitingForPlayer))
     setFilter(Filter.WAITING)
+    setAddressFilter('')
   }
 
   const handleFilterFinished = () => {
     setFilteredGames(games.filter((game) => [E_Game_State.Player1Won, E_Game_State.Player2Turn, E_Game_State.Draw].includes(game.state)))
     setFilter(Filter.FINISHED)
+    setAddressFilter('')
   }
 
   const handleFilterPlaying = () => {
     setFilteredGames(games.filter((game) => [E_Game_State.Player1Turn, E_Game_State.Player2Turn].includes(game.state)))
     setFilter(Filter.PLAYING)
+    setAddressFilter('')
   }
 
   const handleResetFilter = () => {
     setFilteredGames(games)
+    setFilter(Filter.ALL)
+    setAddressFilter('')
+  }
+
+  const handleFilterAddress = () => {
+    setFilteredGames(games.filter((game) => game.player1 === addressFilter || game.player2 === addressFilter))
     setFilter(Filter.ALL)
   }
 
@@ -148,6 +158,9 @@ const GamesPage = () => {
         placeholder="type address"
         aria-label="Input group example"
         aria-describedby="btnGroupAddon"
+        onChange={(e) => setAddressFilter(e.target.value)}
+        onKeyUp={(e) => e.key === 'Enter' && handleFilterAddress()}
+        value={addressFilter}
       />
     </Col>
     <Col md={12}>
