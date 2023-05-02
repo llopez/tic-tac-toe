@@ -27,13 +27,26 @@ enum Filter {
 const GamesPage = () => {
   const [{ games }, dispatch] = useContext(Context)
   const [filteredGames, setFilteredGames] = useState<I_Game[]>([])
+  const [paginatedGames, setPaginatedGames] = useState<I_Game[]>([])
+  const [page, setPage] = useState<number>(1)
+  const [totalItems, setTotalItems] = useState<number>(0)
+  const [totalFilteredItems, setTotalFilteredItems] = useState<number>(0)
   const [filter, setFilter] = useState<Filter>(Filter.ALL)
   const [addressFilter, setAddressFilter] = useState<string>('')
   const provider = useProvider()
 
+  const perPage = 5
+
+  const totalPages = Math.ceil(totalFilteredItems / perPage)
+
   useEffect(() => {
     setFilteredGames(games)
   }, [games])
+
+  useEffect(() => {
+    setPaginatedGames(filteredGames.slice(0, perPage))
+    setPage(1)
+  }, [filteredGames])
 
   useEffect(() => {
     const contract = new ethers.Contract(CONTRACT_ADDRESS, TicTacToe.abi, provider)
@@ -72,7 +85,7 @@ const GamesPage = () => {
   }, [provider, dispatch])
 
 
-  const { data: gameCount } = useContractRead({
+  useContractRead({
     address: CONTRACT_ADDRESS,
     abi: [{
       "inputs": [],
@@ -88,11 +101,15 @@ const GamesPage = () => {
       "type": "function"
     },],
     functionName: 'gameCount',
+    onSuccess: (gameCount: BigNumber) => {
+      setTotalItems(gameCount.toNumber())
+      setTotalFilteredItems(gameCount.toNumber())
+    }
   })
 
   useEffect(() => {
     (async () => {
-      const count = Array(gameCount?.toNumber()).keys()
+      const count = Array(totalItems).keys()
 
       const res = await readContracts({
         contracts: Array.from(count).map((i) => ({
@@ -111,35 +128,57 @@ const GamesPage = () => {
       })
 
     })()
-  }, [gameCount, dispatch])
+  }, [totalItems, dispatch])
 
   const handleFilterWaiting = () => {
-    setFilteredGames(games.filter((game) => game.state === E_Game_State.WaitingForPlayer))
+    const result = games.filter((game) => game.state === E_Game_State.WaitingForPlayer)
+    setTotalFilteredItems(result.length)
+    setFilteredGames(result)
     setFilter(Filter.WAITING)
     setAddressFilter('')
   }
 
   const handleFilterFinished = () => {
-    setFilteredGames(games.filter((game) => [E_Game_State.Player1Won, E_Game_State.Player2Turn, E_Game_State.Draw].includes(game.state)))
+    const result = games.filter((game) => [E_Game_State.Player1Won, E_Game_State.Player2Won, E_Game_State.Draw].includes(game.state))
+    setTotalFilteredItems(result.length)
+    setFilteredGames(result)
     setFilter(Filter.FINISHED)
     setAddressFilter('')
   }
 
   const handleFilterPlaying = () => {
-    setFilteredGames(games.filter((game) => [E_Game_State.Player1Turn, E_Game_State.Player2Turn].includes(game.state)))
+    const result = games.filter((game) => [E_Game_State.Player1Turn, E_Game_State.Player2Turn].includes(game.state))
+    setTotalFilteredItems(result.length)
+    setFilteredGames(result)
     setFilter(Filter.PLAYING)
     setAddressFilter('')
   }
 
   const handleResetFilter = () => {
+    setTotalFilteredItems(games.length)
     setFilteredGames(games)
     setFilter(Filter.ALL)
     setAddressFilter('')
   }
 
   const handleFilterAddress = () => {
-    setFilteredGames(games.filter((game) => game.player1 === addressFilter || game.player2 === addressFilter))
+    if (addressFilter === '') {
+      setTotalFilteredItems(games.length)
+      setFilteredGames(games)
+      setFilter(Filter.ALL)
+      return
+    }
+    const result = games.filter((game) => game.player1 === addressFilter || game.player2 === addressFilter)
+    setTotalFilteredItems(result.length)
+    setFilteredGames(result)
     setFilter(Filter.ALL)
+  }
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1
+    const end = nextPage * perPage
+    setPaginatedGames((p) => filteredGames.slice(0, end))
+    setPage(nextPage)
   }
 
   return <Row className="justify-content-between">
@@ -164,7 +203,10 @@ const GamesPage = () => {
       />
     </Col>
     <Col md={12}>
-      <List items={filteredGames} />
+      <List items={paginatedGames} />
+    </Col>
+    <Col md={12} className="justify-content-center d-flex mt-4">
+      {totalPages > page && <Button onClick={handleLoadMore}>Load more</Button>}
     </Col>
   </Row>
 }

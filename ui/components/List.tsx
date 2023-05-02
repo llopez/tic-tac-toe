@@ -57,11 +57,6 @@ const List = (props: ListProps) => {
             }
           </Col>
         </Row>
-        <Row className="mt-4">
-          <Col md={12} className="justify-content-center d-flex">
-            <Button>Load more</Button>
-          </Col>
-        </Row>
       </Col>
     </Row>
   )
